@@ -57,25 +57,25 @@ Benefits:
   };
 
   return (
-    <section className="py-20 bg-gradient-hero">
+    <section id="demo" className="py-20 bg-gradient-to-br from-primary via-primary-dark to-secondary">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-primary-foreground mb-4">
             See the Magic in Action
           </h2>
-          <p className="text-xl text-white/80 max-w-3xl mx-auto">
+          <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
             Experience how our AI transforms any content into a complete learning experience
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeDemo} onValueChange={setActiveDemo} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-3 bg-card/10 backdrop-blur-sm border-border">
               {Object.entries(demos).map(([key, demo]) => (
                 <TabsTrigger 
                   key={key} 
                   value={key} 
-                  className="text-white data-[state=active]:bg-white data-[state=active]:text-primary"
+                  className="text-primary-foreground data-[state=active]:bg-card data-[state=active]:text-card-foreground"
                 >
                   <div className="flex items-center gap-2">
                     {demo.icon}
@@ -91,10 +91,10 @@ Benefits:
                   {/* Demo Description */}
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-3">
+                      <h3 className="text-2xl font-bold text-primary-foreground mb-3">
                         {demo.title}
                       </h3>
-                      <p className="text-white/80 text-lg leading-relaxed">
+                      <p className="text-primary-foreground/80 text-lg leading-relaxed">
                         {demo.description}
                       </p>
                     </div>
@@ -105,43 +105,43 @@ Benefits:
                         disabled={isPlaying}
                         variant="secondary"
                         size="lg"
-                        className="bg-white text-primary hover:bg-white/90"
+                        className="bg-card text-card-foreground hover:bg-card/90"
                       >
                         <Play className="w-5 h-5 mr-2" />
                         {isPlaying ? "Generating..." : "Try Demo"}
                       </Button>
                       
                       <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-yellow-400" />
-                        <span className="text-white/80">AI-Powered</span>
+                        <Sparkles className="w-5 h-5 text-accent" />
+                        <span className="text-primary-foreground/80">AI-Powered</span>
                       </div>
                     </div>
 
                     <div className="flex gap-2">
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                      <Badge variant="secondary" className="bg-card/20 text-primary-foreground border-border/30">
                         <Download className="w-3 h-3 mr-1" />
                         Exportable
                       </Badge>
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                      <Badge variant="secondary" className="bg-card/20 text-primary-foreground border-border/30">
                         Real-time
                       </Badge>
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                      <Badge variant="secondary" className="bg-card/20 text-primary-foreground border-border/30">
                         Interactive
                       </Badge>
                     </div>
                   </div>
 
                   {/* Demo Output */}
-                  <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                  <Card className="bg-card/10 backdrop-blur-sm border-border/20">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
+                      <CardTitle className="text-primary-foreground flex items-center gap-2">
                         {demo.icon}
                         Live Demo Output
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-black/20 rounded-lg p-4 h-80 overflow-y-auto">
-                        <pre className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                      <div className="bg-background/20 rounded-lg p-4 h-80 overflow-y-auto">
+                        <pre className="text-primary-foreground/90 text-sm leading-relaxed whitespace-pre-wrap font-mono">
                           {isPlaying && activeDemo === key ? (
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
