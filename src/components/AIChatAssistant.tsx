@@ -130,7 +130,13 @@ const AIChatAssistant = ({ courseContext }: { courseContext?: string }) => {
                       : 'bg-muted'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {message.content.split('\n').map((line, index) => (
+                      <div key={index} className={index > 0 ? 'mt-1' : ''}>
+                        {line}
+                      </div>
+                    ))}
+                  </div>
                   <span className="text-xs opacity-70 mt-1 block">
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
