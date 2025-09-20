@@ -24,9 +24,8 @@ serve(async (req) => {
     const systemPrompt = `You are an expert educational content creator. Generate clear, simple, and well-structured course content. Make notes easy to read with each key point on a new line. Create practical flashcards with concise definitions. Focus on clarity and comprehension.`;
 
     let userPrompt = '';
-    if (sourceType === 'youtube') {
-      userPrompt = `Based on this YouTube video: "${content}", create a comprehensive course titled "${title}". Generate:
-
+    
+    const courseStructure = `
 1. DETAILED NOTES (3 sections):
    ### Section 1 Title
    - Key point 1
@@ -63,8 +62,19 @@ serve(async (req) => {
    **Back:** [Real-world example or use case]
 
 Create flashcards that test understanding, not just memorization. Each back should be 1-2 sentences maximum. Focus on the most important concepts that learners need to remember.`;
+
+    if (sourceType === 'youtube') {
+      userPrompt = `Based on this YouTube video: "${content}", create a comprehensive course titled "${title}". Generate:${courseStructure}`;
+    } else if (sourceType === 'pdf') {
+      userPrompt = `Based on this PDF document content: "${content}", create a comprehensive course titled "${title}". Generate:${courseStructure}`;
+    } else if (sourceType === 'text') {
+      userPrompt = `Based on this text content: "${content}", create a comprehensive course titled "${title}". Generate:${courseStructure}`;
+    } else if (sourceType === 'web') {
+      userPrompt = `Based on this web article: "${content}", create a comprehensive course titled "${title}". Generate:${courseStructure}`;
+    } else if (sourceType === 'audio') {
+      userPrompt = `Based on this audio content: "${content}", create a comprehensive course titled "${title}". Generate:${courseStructure}`;
     } else {
-      userPrompt = `Based on this PDF document: "${content}", create a comprehensive course titled "${title}". Generate:
+      userPrompt = `Based on this content: "${content}", create a comprehensive course titled "${title}". Generate:
 
 1. DETAILED NOTES (3 sections):
    ### Section 1 Title

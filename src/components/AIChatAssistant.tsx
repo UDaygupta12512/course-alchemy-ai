@@ -107,16 +107,16 @@ const AIChatAssistant = ({ courseContext }: { courseContext?: string }) => {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 pb-4">
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+        <ScrollArea className="flex-1 px-6 min-h-0">
+          <div className="space-y-4 py-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.sender === 'ai' && (
-                  <Avatar className="w-8 h-8">
+                  <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarFallback className="bg-gradient-primary text-white">
                       <Bot className="w-4 h-4" />
                     </AvatarFallback>
@@ -124,15 +124,15 @@ const AIChatAssistant = ({ courseContext }: { courseContext?: string }) => {
                 )}
                 
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
+                  className={`max-w-[75%] rounded-lg p-3 ${
                     message.sender === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
                   }`}
                 >
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                     {message.content.split('\n').map((line, index) => (
-                      <div key={index} className={index > 0 ? 'mt-1' : ''}>
+                      <div key={index} className={index > 0 ? 'mt-2' : ''}>
                         {line}
                       </div>
                     ))}
@@ -143,7 +143,7 @@ const AIChatAssistant = ({ courseContext }: { courseContext?: string }) => {
                 </div>
                 
                 {message.sender === 'user' && (
-                  <Avatar className="w-8 h-8">
+                  <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarFallback>
                       <User className="w-4 h-4" />
                     </AvatarFallback>
@@ -154,7 +154,7 @@ const AIChatAssistant = ({ courseContext }: { courseContext?: string }) => {
             
             {isTyping && (
               <div className="flex gap-3 justify-start">
-                <Avatar className="w-8 h-8">
+                <Avatar className="w-8 h-8 flex-shrink-0">
                   <AvatarFallback className="bg-gradient-primary text-white">
                     <Bot className="w-4 h-4" />
                   </AvatarFallback>
