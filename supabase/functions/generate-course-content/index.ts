@@ -140,49 +140,66 @@ Create flashcards that test understanding, not just memorization. Each back shou
 
     // Parse the generated content to extract structured data
     const parseContent = (content: string) => {
-      const sections = content.split(/(?=\d+\.\s+(?:DETAILED NOTES|CHALLENGING QUIZZES|FLASHCARDS))/);
+      console.log('Parsing content:', content.substring(0, 500));
       
       const notes = [];
       const quizzes = [];
       const flashcards = [];
 
+      // Split content into major sections
+      const sections = content.split(/(?=##?\s*(?:DETAILED NOTES|CHALLENGING QUIZZES|FLASHCARDS))/i);
+      
       sections.forEach(section => {
-        if (section.includes('DETAILED NOTES')) {
-          // Extract notes sections
-          const noteMatches = section.match(/### (.+?)\n([\s\S]*?)(?=###|$)/g);
+        const sectionLower = section.toLowerCase();
+        
+        if (sectionLower.includes('detailed notes') || sectionLower.includes('notes')) {
+          // Extract notes sections - stop at quizzes or flashcards
+          const notesContent = section.split(/##?\s*(?:challenging quizzes|flashcards)/i)[0];
+          const noteMatches = notesContent.match(/###\s*(.+?)\n([\s\S]*?)(?=###|$)/g);
+          
           if (noteMatches) {
             noteMatches.forEach(match => {
-              const [, title] = match.match(/### (.+?)\n/) || [];
-              let content = match.replace(/### .+?\n/, '').trim();
-              
-              // Format content for better readability - convert bullet points to proper format
-              content = content
-                .replace(/^-\s+/gm, '• ')  // Convert - to bullet points
-                .replace(/^\*\s+/gm, '• ') // Convert * to bullet points
-                .replace(/\n\n+/g, '\n\n') // Clean up extra line breaks
-                .trim();
-              
-              if (title && content) {
-                notes.push({
-                  title,
-                  content,
-                  duration: `${Math.ceil(content.split(' ').length / 200)} min read`
-                });
+              const titleMatch = match.match(/###\s*(.+?)\n/);
+              if (titleMatch) {
+                const title = titleMatch[1].trim();
+                let content = match.replace(/###\s*.+?\n/, '').trim();
+                
+                // Stop at quiz or flashcard sections
+                content = content.split(/##?\s*(?:challenging quizzes|flashcards)/i)[0].trim();
+                
+                // Format content for better readability
+                content = content
+                  .replace(/^-\s+/gm, '• ')
+                  .replace(/^\*\s+/gm, '• ')
+                  .replace(/\n\n+/g, '\n\n')
+                  .trim();
+                
+                if (title && content) {
+                  notes.push({
+                    title,
+                    content,
+                    duration: `${Math.ceil(content.split(' ').length / 200)} min read`
+                  });
+                }
               }
             });
           }
-        } else if (section.includes('CHALLENGING QUIZZES')) {
+        }
+        
+        if (sectionLower.includes('challenging quizzes') || sectionLower.includes('quizzes')) {
           // Extract quiz questions
-          const quizMatches = section.match(/\*\*Question \d+:\*\*(.+?)(?=\*\*Question \d+:\*\*|$)/gs);
+          const quizSection = section.split(/##?\s*flashcards/i)[0]; // Stop at flashcards
+          const quizMatches = quizSection.match(/\*\*Question \d+:\*\*\s*(.+?)(?=\*\*Question \d+:\*\*|##|$)/gs);
+          
           if (quizMatches) {
             quizMatches.forEach(match => {
-              const questionMatch = match.match(/\*\*Question \d+:\*\*\s*(.+?)\n/);
-              const optionsMatch = match.match(/(?:a\)|A\)).+/g);
-              const correctMatch = match.match(/\*\*Correct:\*\*\s*([a-dA-D])/);
-              const explanationMatch = match.match(/\*\*Explanation:\*\*\s*([\s\S]+?)(?=\n\n|$)/);
+              const questionMatch = match.match(/\*\*Question \d+:\*\*\s*(.+?)(?:\n|$)/);
+              const optionsMatch = match.match(/[a-d]\)\s*(.+?)(?:\n|$)/gi);
+              const correctMatch = match.match(/\*\*Correct:\*\*\s*([a-d])/i);
+              const explanationMatch = match.match(/\*\*Explanation:\*\*\s*([\s\S]+?)(?=\n\*\*|$)/);
 
               if (questionMatch && optionsMatch && correctMatch) {
-                const options = optionsMatch.map(opt => opt.replace(/^[a-dA-D]\)\s*/, ''));
+                const options = optionsMatch.map(opt => opt.replace(/^[a-d]\)\s*/i, '').trim());
                 const correctIndex = correctMatch[1].toLowerCase().charCodeAt(0) - 97;
                 
                 quizzes.push({
@@ -194,22 +211,25 @@ Create flashcards that test understanding, not just memorization. Each back shou
               }
             });
           }
-        } else if (section.includes('FLASHCARDS')) {
+        }
+        
+        if (sectionLower.includes('flashcards')) {
           // Extract flashcards
-          const cardMatches = section.match(/\*\*Front:\*\*(.+?)\*\*Back:\*\*(.+?)(?=\*\*Front:|$)/gs);
+          const cardMatches = section.match(/\*\*Front:\*\*\s*(.+?)\s*\*\*Back:\*\*\s*([\s\S]*?)(?=\*\*Front:|$)/gs);
+          
           if (cardMatches) {
             cardMatches.forEach(match => {
-              const frontMatch = match.match(/\*\*Front:\*\*\s*(.+?)(?:\n|\*\*Back)/);
-              const backMatch = match.match(/\*\*Back:\*\*\s*([\s\S]+?)(?=\n\n|\*\*Front:|$)/);
+              const frontMatch = match.match(/\*\*Front:\*\*\s*(.+?)(?=\s*\*\*Back)/s);
+              const backMatch = match.match(/\*\*Back:\*\*\s*([\s\S]+?)(?=\s*$)/s);
               
               if (frontMatch && backMatch) {
                 const front = frontMatch[1].trim();
                 let back = backMatch[1].trim();
                 
-                // Clean up the back content - remove extra formatting and keep it concise
+                // Clean up the back content
                 back = back
-                  .replace(/\n+/g, ' ')  // Replace line breaks with spaces
-                  .replace(/\s+/g, ' ')  // Clean up multiple spaces
+                  .replace(/\n+/g, ' ')
+                  .replace(/\s+/g, ' ')
                   .trim();
                 
                 flashcards.push({
@@ -223,6 +243,7 @@ Create flashcards that test understanding, not just memorization. Each back shou
         }
       });
 
+      console.log('Parsed results:', { notesCount: notes.length, quizzesCount: quizzes.length, flashcardsCount: flashcards.length });
       return { notes, quizzes, flashcards };
     };
 
