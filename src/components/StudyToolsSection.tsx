@@ -21,28 +21,28 @@ const StudyToolsSection = () => {
       title: "Smart Note Taking",
       description: "AI-generated notes that capture key concepts and relationships",
       features: ["Auto-summarization", "Keyword extraction", "Mind maps"],
-      color: "from-blue-500 to-cyan-500"
+      color: "bg-gradient-primary"
     },
     {
       icon: <Target className="w-8 h-8" />,
       title: "Adaptive Testing",
       description: "Personalized quizzes that adapt to your learning progress",
       features: ["Difficulty adjustment", "Weak point focus", "Progress tracking"],
-      color: "from-purple-500 to-pink-500"
+      color: "bg-gradient-secondary"
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: "Progress Analytics",
       description: "Detailed insights into your learning patterns and achievements",
       features: ["Performance metrics", "Time tracking", "Goal setting"],
-      color: "from-green-500 to-emerald-500"
+      color: "bg-gradient-hero"
     },
     {
       icon: <Calendar className="w-8 h-8" />,
       title: "Study Scheduler",
       description: "AI-optimized study plans that fit your schedule and goals",
       features: ["Smart scheduling", "Deadline tracking", "Reminder system"],
-      color: "from-orange-500 to-red-500"
+      color: "bg-gradient-primary"
     }
   ];
 
@@ -94,7 +94,7 @@ const StudyToolsSection = () => {
             <Card key={index} className="group hover:shadow-elegant transition-all duration-300 hover:scale-[1.02] border-0 bg-gradient-card overflow-hidden">
               <CardHeader className="relative">
                 <div className="flex items-start justify-between">
-                  <div className={`w-16 h-16 bg-gradient-to-r ${tool.color} rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-lg`}>
+                  <div className={`w-16 h-16 ${tool.color} rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-glow`}>
                     {tool.icon}
                   </div>
                   <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">
@@ -115,7 +115,7 @@ const StudyToolsSection = () => {
                     </div>
                   ))}
                 </div>
-                <Button variant="outline" className="w-full group/btn">
+                <Button variant="outline" className="w-full group/btn hover:bg-primary hover:text-primary-foreground">
                   Explore Tool
                   <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
