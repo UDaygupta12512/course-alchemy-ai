@@ -133,6 +133,31 @@ const CourseManager = () => {
     }, 1000);
   };
 
+  const handleViewCourse = (course: Course) => {
+    toast({
+      title: "Opening course...",
+      description: `Loading "${course.title}" for viewing.`,
+    });
+    // In a real app, this would navigate to a course view page
+    window.open(course.source, '_blank');
+  };
+
+  const handleEditCourse = (course: Course) => {
+    toast({
+      title: "Edit course",
+      description: `Opening editor for "${course.title}".`,
+    });
+    // In a real app, this would open an edit modal or navigate to edit page
+  };
+
+  const handleDownloadCourse = (course: Course) => {
+    toast({
+      title: "Downloading materials...",
+      description: `Preparing download for "${course.title}".`,
+    });
+    // In a real app, this would trigger a download of course materials
+  };
+
   const deleteCourse = (courseId: string) => {
     setCourses(prev => prev.filter(c => c.id !== courseId));
     toast({
@@ -316,19 +341,35 @@ const CourseManager = () => {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewCourse(course)}
+                        title="View Course"
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleEditCourse(course)}
+                        title="Edit Course"
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleDownloadCourse(course)}
+                        title="Download Materials"
+                      >
                         <Download className="w-4 h-4" />
                       </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
                         onClick={() => deleteCourse(course.id)}
+                        title="Delete Course"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
