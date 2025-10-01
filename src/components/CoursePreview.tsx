@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import AIChatAssistant from "@/components/AIChatAssistant";
 import { 
   BookOpen, 
   MessageSquare, 
@@ -19,32 +20,24 @@ import {
 interface CoursePreviewProps {
   isVisible: boolean;
   courseTitle: string;
-  sourceType: "youtube" | "pdf";
+  sourceType: "youtube" | "pdf" | "text" | "web" | "audio";
   inputContent?: string; // URL or file name
+  generatedContent?: any; // AI-generated content
 }
 
-const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: CoursePreviewProps) => {
+const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent, generatedContent }: CoursePreviewProps) => {
   const { toast } = useToast();
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [showResults, setShowResults] = useState<Record<number, boolean>>({});
-  const [chatMessages, setChatMessages] = useState([
-    {
-      id: 1,
-      type: 'ai' as const,
-      message: "Hi! I'm your AI tutor for this course. I can help explain concepts, answer questions, and provide additional examples. What would you like to learn more about?"
-    },
-    {
-      id: 2,
-      type: 'user' as const,
-      message: "Can you explain neural networks in simple terms?"
-    },
-    {
-      id: 3,
-      type: 'ai' as const,
-      message: "Think of neural networks like your brain! Just as your brain has neurons that connect and pass information, artificial neural networks have nodes that process information. Each node receives input, processes it, and passes the result to the next layer. The network 'learns' by adjusting these connections based on examples, just like how you learn from experience! 🧠"
-    }
-  ]);
-  const [newMessage, setNewMessage] = useState('');
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizPerformance, setQuizPerformance] = useState({
+    totalQuestions: 0,
+    correctAnswers: 0,
+    score: 0,
+    timeSpent: "0 minutes",
+    strengths: [] as string[],
+    improvementAreas: [] as string[]
+  });
 
   if (!isVisible) return null;
 
@@ -64,47 +57,33 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
       return "From a programming perspective, here's how you'd implement this: Start with data preprocessing, then define your model architecture, set up training loops, and finally evaluate performance. I can walk you through each step with code examples if you'd like!";
     } else if (message.includes('thank') || message.includes('thanks')) {
       return "You're welcome! I'm here to help you master these concepts. Feel free to ask about any part of the course material - whether it's theory, practical applications, or implementation details.";
-    } else {
-      // Default varied responses
-      const defaultResponses = [
-        "That's an insightful question! Based on the course material, this topic connects to several key principles we've discussed. Let me elaborate on the most important aspects.",
-        "Excellent point! This concept is fundamental to understanding the broader framework. I can provide specific examples and walk through the reasoning step by step.",
-        "I can definitely help with that! This is a common area where students need clarification. Let me explain it using analogies and practical examples from the course.",
-        "Great question! This relates directly to what we covered in the previous sections. The key insight here is understanding how different components work together.",
-        "That's a topic that often requires deeper explanation. Based on the course content, here are the essential points you need to understand about this concept."
-      ];
-      return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
     }
   };
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    
-    const userMessage = {
-      id: Date.now(),
-      type: 'user' as const,
-      message: newMessage
-    };
-    
-    setChatMessages(prev => [...prev, userMessage]);
-    const currentMessage = newMessage;
-    setNewMessage('');
-    
-    // Simulate AI response with contextual reply
-    setTimeout(() => {
-      const aiResponse = {
-        id: Date.now() + 1,
-        type: 'ai' as const,
-        message: getAIResponse(currentMessage)
-      };
-      setChatMessages(prev => [...prev, aiResponse]);
-    }, 1000);
-  };
-
   const handleExportCourse = () => {
+    const courseData = {
+      title: courseTitle,
+      notes: courseContent.notes,
+      quizzes: courseContent.quizzes,
+      flashcards: courseContent.flashcards,
+      exportDate: new Date().toISOString(),
+    };
+
+    const dataStr = JSON.stringify(courseData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${courseTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
     toast({
-      title: "Course Export Started",
-      description: "Your complete course is being prepared for download...",
+      title: "Course Exported",
+      description: "Your course has been downloaded as a JSON file.",
     });
   };
 
@@ -120,8 +99,59 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
     setShowResults(prev => ({ ...prev, [quizIndex]: true }));
   };
 
-  // Generate intelligent content based on input analysis
-  const generateContent = () => {
+  const handleSubmitQuiz = () => {
+    const quizzes = getCourseContent().quizzes;
+    let correctCount = 0;
+    const strengths: string[] = [];
+    const improvementAreas: string[] = [];
+
+    quizzes.forEach((quiz, index) => {
+      const userAnswer = quizAnswers[index];
+      if (userAnswer === quiz.correctAnswer) {
+        correctCount++;
+        strengths.push(quiz.topic || `Question ${index + 1}`);
+      } else {
+        improvementAreas.push(quiz.topic || `Question ${index + 1}`);
+      }
+    });
+
+    const score = Math.round((correctCount / quizzes.length) * 100);
+    
+    setQuizPerformance({
+      totalQuestions: quizzes.length,
+      correctAnswers: correctCount,
+      score,
+      timeSpent: "5 minutes", // This would be calculated in a real app
+      strengths,
+      improvementAreas
+    });
+    
+    setQuizSubmitted(true);
+    
+    toast({
+      title: "Quiz Completed!",
+      description: `You scored ${score}% (${correctCount}/${quizzes.length} correct)`,
+    });
+  };
+
+  // Use AI-generated content if available, otherwise fall back to generated content
+  const getCourseContent = () => {
+    if (generatedContent) {
+      return {
+        notes: generatedContent.notes || [],
+        quizzes: generatedContent.quizzes || [],
+        flashcards: generatedContent.flashcards || []
+      };
+    }
+    
+    // Fallback to generated content if no AI content
+    return generateContent();
+  };
+
+  const courseContent = getCourseContent();
+
+  // Generate intelligent content based on input analysis (fallback)
+  function generateContent() {
     const input = inputContent?.toLowerCase() || courseTitle.toLowerCase();
     
     // Advanced topic detection with keywords
@@ -207,28 +237,180 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
         displayName: 'General Knowledge',
         focus: 'core concepts, fundamental principles, and practical applications',
         applications: 'skill development, knowledge building, and practical implementation'
-      }
+       }
     };
 
     const config = topicConfigs[detectedTopic];
 
-    return {
+    const content = {
       youtube: {
         notes: [
           {
             title: `Core Concepts from "${inputName.substring(0, 40)}..."`,
-            content: `• **Main Focus**: ${config.focus}\n• **Key Topics**: ${keyPhrases}\n• **Practical Applications**: ${config.applications}\n\nThis video provides actionable insights that can be immediately applied to real-world scenarios. The content emphasizes practical implementation over theoretical discussion.`,
-            duration: "5 min read"
+            content: `Main Focus: ${config.focus}
+
+Key Topics: ${keyPhrases}
+
+Practical Applications: ${config.applications}
+
+**Detailed Analysis:**
+
+This comprehensive video provides in-depth insights into ${config.displayName.toLowerCase()}, covering fundamental principles and advanced techniques. The content systematically builds understanding through structured learning modules.
+
+**Core Principles Explored:**
+1. **Foundation Layer**: Understanding the theoretical underpinnings and historical context
+2. **Methodology Framework**: Systematic approaches to problem-solving and implementation
+3. **Practical Applications**: Real-world case studies demonstrating effective application
+4. **Advanced Techniques**: Cutting-edge strategies for optimization and scaling
+
+**Implementation Guidelines:**
+- Start with foundational concepts to build solid understanding
+- Apply systematic methodology for consistent results
+- Use practical examples to reinforce learning
+- Implement advanced techniques gradually as competency develops
+
+**Critical Success Factors:**
+• Consistent practice and iterative improvement
+• Application of learned concepts to real projects
+• Regular assessment and adjustment of strategies
+• Continuous learning and skill development
+
+**Industry Best Practices:**
+The video emphasizes industry-standard approaches that have proven successful across multiple organizations and use cases. These practices ensure reliability, scalability, and maintainability of solutions.`,
+            duration: "12 min read"
           },
           {
-            title: `Implementation Strategy`,
-            content: `**Step-by-Step Approach:**\n1. Foundation building with core principles\n2. Practical application through examples\n3. Advanced techniques and optimization\n4. Real-world case studies and scenarios\n\n**Success Metrics:** Clear benchmarks for measuring progress and effectiveness in ${config.displayName.toLowerCase()}.`,
-            duration: "7 min read"
+            title: `Advanced Implementation Strategy & Methodologies`,
+            content: `**Strategic Framework Overview:**
+
+This section delves deep into the systematic approach for implementing ${config.displayName.toLowerCase()} solutions in professional environments.
+
+**Phase 1: Planning & Assessment (Weeks 1-2)**
+1. **Current State Analysis**
+   - Comprehensive evaluation of existing systems and processes
+   - Identification of key stakeholders and their requirements
+   - Gap analysis between current capabilities and desired outcomes
+   - Risk assessment and mitigation strategy development
+
+2. **Strategic Planning**
+   - Definition of clear, measurable objectives and success criteria
+   - Development of detailed implementation roadmap with milestones
+   - Resource allocation and team structure planning
+   - Timeline establishment with realistic deadlines and buffer zones
+
+**Phase 2: Foundation Building (Weeks 3-6)**
+3. **Infrastructure Setup**
+   - System architecture design and implementation
+   - Tool selection and configuration based on project requirements
+   - Team training and knowledge transfer sessions
+   - Quality assurance processes and testing frameworks
+
+4. **Pilot Implementation**
+   - Small-scale testing with controlled variables
+   - Performance monitoring and data collection
+   - Feedback integration and process refinement
+   - Documentation of lessons learned and best practices
+
+**Phase 3: Full-Scale Deployment (Weeks 7-12)**
+5. **Systematic Rollout**
+   - Phased deployment to minimize disruption and risk
+   - Continuous monitoring of key performance indicators
+   - Regular stakeholder communication and status updates
+   - Agile adaptation based on real-world feedback
+
+6. **Optimization & Scaling**
+   - Performance tuning and efficiency improvements
+   - Scalability testing and capacity planning
+   - Integration with existing systems and workflows
+   - Long-term maintenance and support strategy
+
+**Success Metrics & KPIs:**
+- Implementation timeline adherence (target: 95% on-time delivery)
+- Quality metrics and error rates (target: <2% defect rate)
+- User adoption and satisfaction scores (target: >85% satisfaction)
+- Return on investment and cost-benefit analysis
+- Performance improvements and efficiency gains
+
+**Advanced Techniques:**
+• Automation strategies for repetitive tasks and processes
+• Machine learning integration for predictive analytics
+• Continuous integration and deployment pipelines
+• Advanced monitoring and alerting systems
+• Security best practices and compliance frameworks`,
+            duration: "18 min read"
           },
           {
-            title: `Key Takeaways & Action Items`,
-            content: `**Immediate Actions:**\n• Apply the primary methodology discussed\n• Implement the recommended tools/frameworks\n• Practice with the provided examples\n\n**Long-term Goals:**\n• Master the advanced concepts\n• Develop expertise in ${config.displayName.toLowerCase()}\n• Build a portfolio of successful applications`,
-            duration: "4 min read"
+            title: `Expert-Level Insights & Advanced Applications`,
+            content: `**Expert Analysis & Deep Dive:**
+
+This advanced section provides expert-level insights into ${config.displayName.toLowerCase()}, exploring sophisticated techniques and emerging trends in the field.
+
+**Advanced Conceptual Framework:**
+
+**1. Theoretical Foundations**
+The video explores cutting-edge theoretical concepts that form the backbone of modern ${config.displayName.toLowerCase()} practices:
+- Emerging paradigms and their practical implications
+- Integration of cross-disciplinary approaches and methodologies
+- Advanced mathematical models and their real-world applications
+- Cognitive science principles applied to ${config.displayName.toLowerCase()}
+
+**2. Expert Methodologies**
+Professional-grade approaches used by industry leaders:
+- Advanced problem-solving frameworks used by Fortune 500 companies
+- Proprietary methodologies developed through years of research and practice
+- Data-driven decision making processes with statistical validation
+- Iterative improvement cycles with continuous feedback loops
+
+**3. Innovation Strategies**
+Cutting-edge approaches to innovation and creativity:
+- Design thinking methodologies for breakthrough solutions
+- Rapid prototyping and testing frameworks
+- Cross-functional collaboration techniques
+- Technology-enabled innovation processes
+
+**Real-World Case Studies:**
+
+**Case Study 1: Global Enterprise Implementation**
+- Challenge: Multinational corporation needed to standardize ${config.displayName.toLowerCase()} across 50+ countries
+- Solution: Developed hybrid framework combining standardization with local adaptation
+- Results: 40% improvement in efficiency, 60% reduction in implementation time
+- Key Learnings: Cultural sensitivity crucial for global rollouts
+
+**Case Study 2: Startup to Scale**
+- Challenge: Rapidly growing startup needed scalable ${config.displayName.toLowerCase()} infrastructure
+- Solution: Cloud-native architecture with automated scaling capabilities
+- Results: Supported 10x growth without proportional increase in operational overhead
+- Key Learnings: Early investment in scalability pays significant dividends
+
+**Case Study 3: Legacy System Modernization**
+- Challenge: 20-year-old system required modernization without business disruption
+- Solution: Phased migration with parallel systems and gradual transition
+- Results: Zero downtime migration with 50% performance improvement
+- Key Learnings: Careful planning and risk mitigation essential for complex migrations
+
+**Future Trends & Emerging Technologies:**
+• AI/ML integration for predictive capabilities and automation
+• Blockchain applications for transparency and security
+• Edge computing for real-time processing and reduced latency
+• Quantum computing implications for complex problem solving
+• Sustainability considerations and green technology integration
+
+**Professional Development Recommendations:**
+- Continuous learning through industry conferences and certifications
+- Building networks with other professionals and thought leaders
+- Contributing to open-source projects and community initiatives
+- Developing teaching and mentoring capabilities
+- Staying current with regulatory and compliance requirements
+
+**Implementation Checklist:**
+✓ Establish clear governance and decision-making processes
+✓ Implement comprehensive monitoring and analytics capabilities
+✓ Develop disaster recovery and business continuity plans
+✓ Create comprehensive documentation and knowledge management systems
+✓ Build change management and user adoption strategies
+✓ Establish vendor management and partnership frameworks
+✓ Implement security and compliance monitoring systems`,
+            duration: "25 min read"
           }
         ],
         quizzes: [
@@ -310,12 +492,60 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
         notes: [
           {
             title: `Chapter 1: Introduction to ${config.displayName}`,
-            content: `## Overview\nThis document provides a comprehensive introduction to ${config.displayName.toLowerCase()}, focusing on ${config.focus}.\n\n## Learning Objectives\nBy the end of this chapter, you will understand:\n• Fundamental concepts and terminology\n• Core principles underlying ${config.displayName.toLowerCase()}\n• Real-world applications and use cases\n\n## Key Concepts\n**Definition**: ${config.displayName} encompasses the study and application of ${config.focus}.\n\n**Importance**: Understanding these concepts is crucial for ${config.applications}.\n\n**Applications**: This knowledge directly applies to:\n• Problem-solving in professional environments\n• Strategic decision-making processes\n• Innovation and improvement initiatives`,
+            content: `Overview
+This document provides a comprehensive introduction to ${config.displayName.toLowerCase()}, focusing on ${config.focus}.
+
+Learning Objectives
+By the end of this chapter, you will understand:
+• Fundamental concepts and terminology
+• Core principles underlying ${config.displayName.toLowerCase()}
+• Real-world applications and use cases
+
+Key Concepts
+Definition: ${config.displayName} encompasses the study and application of ${config.focus}.
+
+Importance: Understanding these concepts is crucial for ${config.applications}.
+
+Applications: This knowledge directly applies to:
+• Problem-solving in professional environments
+• Strategic decision-making processes
+• Innovation and improvement initiatives`,
             duration: "8 min read"
           },
           {
             title: `Chapter 2: Core Methodology & Framework`,
-            content: `## Theoretical Foundation\nThe document establishes a systematic approach to ${config.displayName.toLowerCase()} through evidence-based methodologies.\n\n## Step-by-Step Framework\n\n### Phase 1: Assessment & Planning\n1. **Current State Analysis**\n   - Evaluate existing conditions\n   - Identify gaps and opportunities\n   - Set measurable objectives\n\n2. **Strategic Planning**\n   - Define clear goals and success metrics\n   - Develop implementation timeline\n   - Allocate necessary resources\n\n### Phase 2: Implementation\n3. **Systematic Execution**\n   - Follow structured methodology\n   - Apply best practices consistently\n   - Monitor progress continuously\n\n4. **Quality Assurance**\n   - Validate results against objectives\n   - Make data-driven adjustments\n   - Document lessons learned\n\n## Best Practices\n• Maintain clear documentation throughout the process\n• Engage stakeholders at each critical phase\n• Use quantitative metrics to measure success\n• Adapt approach based on emerging insights`,
+            content: `Theoretical Foundation
+The document establishes a systematic approach to ${config.displayName.toLowerCase()} through evidence-based methodologies.
+
+Step-by-Step Framework
+
+Phase 1: Assessment & Planning
+1. Current State Analysis
+   • Evaluate existing conditions
+   • Identify gaps and opportunities
+   • Set measurable objectives
+
+2. Strategic Planning
+   • Define clear goals and success metrics
+   • Develop implementation timeline
+   • Allocate necessary resources
+
+Phase 2: Implementation
+3. Systematic Execution
+   • Follow structured methodology
+   • Apply best practices consistently
+   • Monitor progress continuously
+
+4. Quality Assurance
+   • Validate results against objectives
+   • Make data-driven adjustments
+   • Document lessons learned
+
+Best Practices
+• Maintain clear documentation throughout the process
+• Engage stakeholders at each critical phase
+• Use quantitative metrics to measure success
+• Adapt approach based on emerging insights`,
             duration: "12 min read"
           },
           {
@@ -415,13 +645,15 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
           }
         ]
       }
-    }[sourceType];
-  };
+    };
+    
+    return sourceType === 'youtube' ? content.youtube : sourceType === 'pdf' ? content.pdf : content.youtube;
+  }
 
-  const content = generateContent();
-  const mockNotes = content.notes;
-  const mockQuizzes = content.quizzes;
-  const mockFlashcards = content.flashcards;
+  const content = getCourseContent();
+  const mockNotes = content.notes || courseContent.notes;
+  const mockQuizzes = content.quizzes || courseContent.quizzes;
+  const mockFlashcards = content.flashcards || courseContent.flashcards;
 
   return (
     <div className="mt-8 animate-fade-in">
@@ -433,7 +665,10 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
               Course Generated Successfully!
             </CardTitle>
             <Badge variant="secondary" className="bg-green-100 text-green-700">
-              {sourceType === "youtube" ? "YouTube" : "PDF"} Content
+              {sourceType === "youtube" ? "YouTube" : 
+               sourceType === "pdf" ? "PDF" : 
+               sourceType === "text" ? "Text" : 
+               sourceType === "web" ? "Web" : "Audio"} Content
             </Badge>
           </div>
           <p className="text-muted-foreground">
@@ -480,9 +715,24 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{note.content}</p>
-                  </CardContent>
+                   <CardContent>
+                     <div className="prose prose-sm max-w-none space-y-3">
+                       <div className="text-muted-foreground leading-relaxed">
+                         {note.content.split('\n').map((line, lineIndex) => (
+                           <div key={lineIndex} className="mb-2">
+                             {line.startsWith('•') ? (
+                               <div className="flex items-start gap-2 ml-2">
+                                 <span className="text-primary mt-1.5">•</span>
+                                 <span>{line.substring(1).trim()}</span>
+                               </div>
+                             ) : line.trim() ? (
+                               <p className="mb-3">{line}</p>
+                             ) : null}
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   </CardContent>
                 </Card>
               ))}
             </TabsContent>
@@ -492,7 +742,7 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
                 <h3 className="text-lg font-semibold">Interactive Quizzes</h3>
                 <Badge variant="secondary">{mockQuizzes.length} Questions</Badge>
               </div>
-              {mockQuizzes.map((quiz, index) => (
+              {!quizSubmitted && mockQuizzes.map((quiz, index) => (
                 <Card key={index} className="border border-border/50">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -573,6 +823,118 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
                   </CardContent>
                 </Card>
               ))}
+              
+              {!quizSubmitted && Object.keys(quizAnswers).length === mockQuizzes.length && (
+                <div className="mt-6 flex justify-center">
+                  <Button variant="hero" size="lg" onClick={handleSubmitQuiz}>
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    Submit Quiz
+                  </Button>
+                </div>
+              )}
+
+              {quizSubmitted && (
+                <div className="mt-6 space-y-6">
+                  {/* Quiz Results Summary */}
+                  <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/10">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-xl">
+                        <CheckCircle className="w-6 h-6 text-green-500" />
+                        Quiz Results
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="text-center p-4 bg-background rounded-lg border">
+                          <div className="text-3xl font-bold text-primary mb-1">{quizPerformance.score}%</div>
+                          <div className="text-sm text-muted-foreground">Overall Score</div>
+                        </div>
+                        <div className="text-center p-4 bg-background rounded-lg border">
+                          <div className="text-3xl font-bold text-green-600 mb-1">{quizPerformance.correctAnswers}</div>
+                          <div className="text-sm text-muted-foreground">Correct Answers</div>
+                        </div>
+                        <div className="text-center p-4 bg-background rounded-lg border">
+                          <div className="text-3xl font-bold text-blue-600 mb-1">{quizPerformance.totalQuestions}</div>
+                          <div className="text-sm text-muted-foreground">Total Questions</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Performance Analysis */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Star className="w-5 h-5 text-yellow-500" />
+                        Performance Analysis
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-green-600 flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4" />
+                            Strengths
+                          </h4>
+                          {quizPerformance.strengths.length > 0 ? (
+                            <ul className="space-y-1">
+                              {quizPerformance.strengths.map((strength, index) => (
+                                <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  {strength}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Focus on understanding the core concepts</p>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-orange-600 flex items-center gap-2">
+                            <Brain className="w-4 h-4" />
+                            Areas for Improvement
+                          </h4>
+                          {quizPerformance.improvementAreas.length > 0 ? (
+                            <ul className="space-y-1">
+                              {quizPerformance.improvementAreas.map((area, index) => (
+                                <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                  {area}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Excellent! All topics mastered</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 border-t">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Time Spent:</span>
+                          <span className="font-medium">{quizPerformance.timeSpent}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Retake Quiz Button */}
+                  <div className="flex justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setQuizSubmitted(false);
+                        setQuizAnswers({});
+                        setShowResults({});
+                      }}
+                    >
+                      <Brain className="w-4 h-4 mr-2" />
+                      Retake Quiz
+                    </Button>
+                  </div>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="flashcards" className="space-y-4 mt-6">
@@ -580,26 +942,28 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
                 <h3 className="text-lg font-semibold">Study Flashcards</h3>
                 <Badge variant="secondary">{mockFlashcards.length} Cards</Badge>
               </div>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {mockFlashcards.map((card, index) => (
-                  <Card key={index} className="group cursor-pointer hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-card to-accent/10 border-2 border-border/50 hover:border-primary/30">
-                    <CardContent className="p-6">
-                      <div className="text-center space-y-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-center gap-2">
-                            <Badge variant="secondary" className="text-xs font-medium">
-                              {card.category}
-                            </Badge>
-                          </div>
-                          <div className="bg-primary/5 rounded-lg p-4 border">
-                            <Badge variant="outline" className="mb-3 text-xs">Term</Badge>
-                            <p className="font-semibold text-lg text-foreground">{card.front}</p>
+                  <Card key={index} className="group cursor-pointer hover:shadow-md transition-all duration-300 bg-gradient-to-br from-card to-accent/5 border border-border/50 hover:border-primary/40">
+                    <CardContent className="p-5">
+                      <div className="space-y-4">
+                        <div className="text-center">
+                          <Badge variant="secondary" className="text-xs font-medium mb-3">
+                            {card.category}
+                          </Badge>
+                        </div>
+                        
+                        <div className="bg-primary/5 rounded-lg p-4 border min-h-[80px] flex items-center justify-center">
+                          <div className="text-center">
+                            <Badge variant="outline" className="mb-2 text-xs">Question</Badge>
+                            <p className="font-semibold text-base text-foreground leading-tight">{card.front}</p>
                           </div>
                         </div>
-                        <div className="border-t-2 border-dashed border-border/50 pt-4">
-                          <div className="bg-accent/20 rounded-lg p-4 border">
-                            <Badge variant="outline" className="mb-3 text-xs">Definition</Badge>
-                            <p className="text-sm text-muted-foreground leading-relaxed">{card.back}</p>
+                        
+                        <div className="bg-accent/10 rounded-lg p-4 border min-h-[100px] flex items-center">
+                          <div className="w-full">
+                            <Badge variant="outline" className="mb-2 text-xs">Answer</Badge>
+                            <p className="text-sm text-muted-foreground leading-relaxed text-left">{card.back}</p>
                           </div>
                         </div>
                       </div>
@@ -610,60 +974,7 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent }: Cou
             </TabsContent>
 
             <TabsContent value="tutor" className="space-y-4 mt-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">AI Tutor Chat</h3>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-muted-foreground">Online</span>
-                </div>
-              </div>
-              <Card className="border border-border/50">
-                <CardContent className="p-6">
-                  <div className="space-y-4 max-h-60 overflow-y-auto">
-                    {chatMessages.map((message) => (
-                      <div key={message.id} className={`flex items-start gap-3 ${message.type === 'user' ? 'justify-end' : ''}`}>
-                        {message.type === 'ai' && (
-                          <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                            <Brain className="w-4 h-4 text-white" />
-                          </div>
-                        )}
-                        <div className={`flex-1 ${message.type === 'user' ? 'max-w-xs' : ''}`}>
-                          <p className={`text-sm rounded-lg p-3 ${
-                            message.type === 'ai' 
-                              ? 'bg-muted/50' 
-                              : 'bg-primary text-primary-foreground'
-                          }`}>
-                            {message.message}
-                          </p>
-                        </div>
-                        {message.type === 'user' && (
-                          <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium">You</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <input 
-                      type="text" 
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Ask your AI tutor anything..." 
-                      className="flex-1 px-4 py-3 border border-border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSendMessage();
-                        }
-                      }}
-                    />
-                    <Button size="sm" className="px-4" onClick={handleSendMessage}>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <AIChatAssistant courseContext={`Course: ${courseTitle}\n\nCourse Content:\n${getCourseContent().notes.map(note => `${note.title}: ${note.content.substring(0, 200)}...`).join('\n\n')}`} />
             </TabsContent>
           </Tabs>
 
