@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,7 +84,6 @@ const CourseManager = () => {
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateCourse = async () => {
     if (!newCourse.title || !newCourse.source) {
@@ -178,10 +177,10 @@ const CourseManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed": return "bg-success";
-      case "processing": return "bg-warning";
-      case "failed": return "bg-destructive";
-      default: return "bg-muted-foreground";
+      case "completed": return "bg-green-500";
+      case "processing": return "bg-yellow-500";
+      case "failed": return "bg-red-500";
+      default: return "bg-gray-500";
     }
   };
 
@@ -237,21 +236,13 @@ const CourseManager = () => {
                   {newCourse.type === "url" && "Website URL"}
                 </Label>
                 {newCourse.type === "pdf" ? (
-                  <div 
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                     <Upload className="w-8 h-8 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground mb-2">Click to upload or drag and drop</p>
                     <p className="text-xs text-muted-foreground">PDF files up to 10MB</p>
-                    {newCourse.source && (
-                      <p className="text-xs text-muted-foreground mt-2">Selected: {newCourse.source}</p>
-                    )}
                     <Input
-                      id="course-pdf"
-                      ref={fileInputRef}
                       type="file"
-                      accept="application/pdf,.pdf"
+                      accept=".pdf"
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
