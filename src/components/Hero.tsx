@@ -20,7 +20,7 @@ const Hero = () => {
 
   return (
     <>
-    <DemoModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
+    <DemoModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} toolTitle="Course Generation Demo" />
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-hero opacity-95" />

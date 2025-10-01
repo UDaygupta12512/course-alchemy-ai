@@ -1,308 +1,253 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Play, X, FileText, MessageSquare, Brain, Clock, CheckCircle, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { CheckCircle, FileText, Target, BarChart3, Calendar, BookOpen, Brain } from "lucide-react";
 
 interface DemoModalProps {
   isOpen: boolean;
   onClose: () => void;
+  toolTitle: string;
 }
 
-const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [generatedContent, setGeneratedContent] = useState<string[]>([]);
+const DemoModal = ({ isOpen, onClose, toolTitle }: DemoModalProps) => {
+  const getDemoContent = () => {
+    switch (toolTitle) {
+      case "Smart Note Taking":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  AI-Generated Notes Demo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">Photosynthesis - Key Concepts</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                      <span><strong>Definition:</strong> Process by which plants convert light energy into chemical energy</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                      <span><strong>Formula:</strong> 6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                      <span><strong>Location:</strong> Primarily occurs in chloroplasts of leaf cells</span>
+                    </li>
+                  </ul>
+                </div>
+                <Badge variant="secondary">Auto-generated from lecture content</Badge>
+              </CardContent>
+            </Card>
+          </div>
+        );
 
-  const demoSteps = [
-    {
-      title: "Upload Content",
-      description: "Processing YouTube video: 'Introduction to Machine Learning'",
-      duration: 2000,
-      icon: <FileText className="w-5 h-5" />
-    },
-    {
-      title: "AI Analysis", 
-      description: "Extracting key concepts, definitions, and learning objectives",
-      duration: 3000,
-      icon: <Brain className="w-5 h-5" />
-    },
-    {
-      title: "Course Generation",
-      description: "Creating notes, quizzes, flashcards, and AI tutor",
-      duration: 2000,
-      icon: <MessageSquare className="w-5 h-5" />
+      case "Adaptive Testing":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Adaptive Quiz Demo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">Question 1 of 5</h4>
+                    <p className="mb-4">What is the primary function of chlorophyll in photosynthesis?</p>
+                    <div className="space-y-2">
+                      <Button variant="outline" className="w-full justify-start">A) To absorb light energy</Button>
+                      <Button variant="outline" className="w-full justify-start">B) To store glucose</Button>
+                      <Button variant="outline" className="w-full justify-start">C) To release oxygen</Button>
+                      <Button variant="outline" className="w-full justify-start">D) To transport water</Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Difficulty:</span>
+                    <Badge variant="secondary">Beginner</Badge>
+                    <span className="text-sm ml-4">Adapting to your performance...</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case "Progress Analytics":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Learning Analytics Demo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">85%</div>
+                    <div className="text-sm text-muted-foreground">Overall Score</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-secondary">12h</div>
+                    <div className="text-sm text-muted-foreground">Study Time</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-accent">7/10</div>
+                    <div className="text-sm text-muted-foreground">Topics Mastered</div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Biology</span>
+                      <span>90%</span>
+                    </div>
+                    <Progress value={90} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Chemistry</span>
+                      <span>75%</span>
+                    </div>
+                    <Progress value={75} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Physics</span>
+                      <span>80%</span>
+                    </div>
+                    <Progress value={80} className="h-2" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case "Study Scheduler":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  AI Study Planner Demo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="p-3 border rounded-lg bg-primary/5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Biology Review</div>
+                        <div className="text-sm text-muted-foreground">9:00 AM - 10:30 AM</div>
+                      </div>
+                      <Badge>Today</Badge>
+                    </div>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Chemistry Practice Test</div>
+                        <div className="text-sm text-muted-foreground">2:00 PM - 3:00 PM</div>
+                      </div>
+                      <Badge variant="outline">Tomorrow</Badge>
+                    </div>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Physics Problem Set</div>
+                        <div className="text-sm text-muted-foreground">7:00 PM - 8:30 PM</div>
+                      </div>
+                      <Badge variant="outline">Tomorrow</Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <Badge variant="secondary" className="bg-success/10 text-success">
+                    AI-optimized for your peak learning hours
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="text-center py-8">
+            <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Demo Coming Soon</h3>
+            <p className="text-muted-foreground">This tool demo will be available soon!</p>
+          </div>
+        );
     }
-  ];
-
-  const sampleContent = [
-    "📝 Generated comprehensive lecture notes on ML fundamentals",
-    "🧠 Created 8 interactive quiz questions about supervised learning",
-    "💡 Generated 12 flashcards for key ML concepts",
-    "🤖 AI Tutor ready to answer questions about the content"
-  ];
-
-  const startDemo = () => {
-    setIsPlaying(true);
-    setCurrentStep(0);
-    setProgress(0);
-    setGeneratedContent([]);
-    
-    let totalDuration = 0;
-    demoSteps.forEach((step, index) => {
-      setTimeout(() => {
-        setCurrentStep(index);
-        setGeneratedContent(prev => [...prev, sampleContent[index] || ""]);
-        
-        // Animate progress within each step
-        const stepDuration = step.duration;
-        const interval = setInterval(() => {
-          setProgress(prev => {
-            const newProgress = prev + (100 / demoSteps.length / (stepDuration / 100));
-            if (newProgress >= (index + 1) * (100 / demoSteps.length)) {
-              clearInterval(interval);
-              return (index + 1) * (100 / demoSteps.length);
-            }
-            return newProgress;
-          });
-        }, stepDuration / 100);
-        
-      }, totalDuration);
-      totalDuration += step.duration;
-    });
-
-    // Complete demo
-    setTimeout(() => {
-      setCurrentStep(demoSteps.length);
-      setProgress(100);
-      setGeneratedContent(sampleContent);
-    }, totalDuration);
   };
-
-  // Reset demo when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setIsPlaying(false);
-      setCurrentStep(0);
-      setProgress(0);
-      setGeneratedContent([]);
-    }
-  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <Play className="w-5 h-5 text-white" />
-            </div>
-            EduSynth Demo
-          </DialogTitle>
+          <DialogTitle>{toolTitle} - Interactive Demo</DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Interactive Demo */}
-          <div className="relative bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl overflow-hidden p-6">
-            <div className="aspect-video flex flex-col justify-center">
-              {!isPlaying ? (
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Play className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Interactive Demo</h3>
-                  <p className="text-white/80 mb-4">Watch EduSynth transform content into a complete course in real-time</p>
-                  <Button variant="hero" onClick={startDemo}>
-                    <Play className="w-4 h-4 mr-2" />
-                    Start Live Demo (7 seconds)
-                  </Button>
+        
+        <Tabs defaultValue="demo" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="demo">Live Demo</TabsTrigger>
+            <TabsTrigger value="features">Features</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="demo" className="mt-6">
+            {getDemoContent()}
+          </TabsContent>
+          
+          <TabsContent value="features" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Key Features</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Brain className="w-5 h-5 text-primary" />
+                  <span>AI-powered intelligent algorithms</span>
                 </div>
-              ) : (
-                <div className="space-y-6 text-white">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold mb-2">Processing: Introduction to Machine Learning</h3>
-                    <Progress value={progress} className="w-full max-w-md mx-auto mb-4" />
-                    <p className="text-white/80 text-sm">{Math.round(progress)}% Complete</p>
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {demoSteps.map((step, index) => (
-                      <Card key={index} className={`border ${
-                        index < currentStep ? 'border-green-500 bg-green-500/10' :
-                        index === currentStep ? 'border-yellow-500 bg-yellow-500/10' :
-                        'border-border/30 bg-background/50'
-                      }`}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                              index < currentStep ? 'bg-green-500' :
-                              index === currentStep ? 'bg-yellow-500' :
-                              'bg-muted'
-                            }`}>
-                              {index < currentStep ? 
-                                <CheckCircle className="w-4 h-4 text-white" /> :
-                                index === currentStep ?
-                                <Loader2 className="w-4 h-4 text-white animate-spin" /> :
-                                step.icon
-                              }
-                            </div>
-                            <Badge variant={index <= currentStep ? "default" : "outline"} className="text-xs">
-                              Step {index + 1}
-                            </Badge>
-                          </div>
-                          <h4 className="font-semibold mb-2">{step.title}</h4>
-                          <p className="text-sm text-muted-foreground">{step.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {generatedContent.length > 0 && (
-                    <div className="bg-background/90 rounded-lg p-4 backdrop-blur-sm">
-                      <h4 className="font-semibold text-foreground mb-3">✨ Generated Content:</h4>
-                      <div className="space-y-2">
-                        {generatedContent.map((content, index) => (
-                          <div key={index} className="flex items-center gap-2 text-sm text-foreground animate-fade-in">
-                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                            {content}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep >= demoSteps.length && (
-                    <div className="text-center">
-                      <Button variant="hero" className="bg-white text-primary hover:bg-white/90" onClick={() => {
-                        onClose();
-                        setTimeout(() => {
-                          document.getElementById('upload-section')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 300);
-                      }}>
-                        Try With Your Own Content
-                      </Button>
-                    </div>
-                  )}
+                <div className="flex items-center gap-3">
+                  <Target className="w-5 h-5 text-secondary" />
+                  <span>Personalized learning adaptation</span>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Process Steps */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">How it works:</h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              {demoSteps.map((step, index) => (
-                <Card key={index} className="border border-border/50">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                        {step.icon}
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        Step {index + 1}
-                      </Badge>
-                    </div>
-                    <h4 className="font-semibold mb-2">{step.title}</h4>
-                    <p className="text-sm text-muted-foreground mb-2">{step.description}</p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {step.duration}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {/* Sample Results */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">What you'll get:</h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card className="border border-border/50">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold mb-2">📝 Smart Notes</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    AI-generated lecture notes with key concepts, definitions, and summaries
-                  </p>
-                  <div className="bg-muted/50 rounded p-3 text-xs">
-                    <strong>Example:</strong> "Machine Learning is a subset of AI that enables computers to learn patterns from data without explicit programming..."
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-border/50">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold mb-2">🧠 Interactive Quizzes</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Automatically generated questions to test comprehension
-                  </p>
-                  <div className="bg-muted/50 rounded p-3 text-xs">
-                    <strong>Q:</strong> What is the main goal of supervised learning?<br/>
-                    <strong>A:</strong> To learn from labeled training data
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-border/50">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold mb-2">💡 Flashcards</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Spaced repetition flashcards for better retention
-                  </p>
-                  <div className="bg-muted/50 rounded p-3 text-xs">
-                    <strong>Front:</strong> What is a Neural Network?<br/>
-                    <strong>Back:</strong> Computing system inspired by biological neural networks
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-border/50">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold mb-2">🤖 AI Tutor</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Personal AI assistant for questions and explanations
-                  </p>
-                  <div className="bg-muted/50 rounded p-3 text-xs">
-                    <strong>You:</strong> Can you explain this concept?<br/>
-                    <strong>AI:</strong> Sure! Let me break it down for you...
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <div className="bg-gradient-hero rounded-xl p-6 text-center text-white">
-            <h3 className="text-xl font-semibold mb-3">Ready to try it yourself?</h3>
-            <p className="text-white/90 mb-4">
-              Start creating your first AI-powered course right now - it's completely free!
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button 
-                variant="hero" 
-                className="bg-white text-primary hover:bg-white/90"
-                onClick={() => {
-                  onClose();
-                  setTimeout(() => {
-                    document.getElementById('upload-section')?.scrollIntoView({ behavior: 'smooth' });
-                  }, 300);
-                }}
-              >
-                Try Live Demo
-              </Button>
-              <Button 
-                variant="outline" 
-                className="border-white/20 text-white hover:bg-white/10"
-                onClick={onClose}
-              >
-                Close
-              </Button>
-            </div>
-          </div>
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-5 h-5 text-accent" />
+                  <span>Real-time progress tracking</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                  <span>Proven learning effectiveness</span>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={onClose}>
+            Close Demo
+          </Button>
+          <Button>
+            Get Full Access
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -23,9 +23,9 @@ const AIChatAssistant = ({ courseContext }: { courseContext?: string }) => {
   const [isTyping, setIsTyping] = useState(false);
 
   const quickActions = [
-    { icon: <HelpCircle className="w-4 h-4" />, text: "Explain this concept", color: "bg-blue-500" },
-    { icon: <BookOpen className="w-4 h-4" />, text: "Create quiz questions", color: "bg-green-500" },
-    { icon: <Lightbulb className="w-4 h-4" />, text: "Suggest study tips", color: "bg-yellow-500" },
+    { icon: <HelpCircle className="w-4 h-4" />, text: "Explain this concept", color: "bg-primary" },
+    { icon: <BookOpen className="w-4 h-4" />, text: "Create quiz questions", color: "bg-secondary" },
+    { icon: <Lightbulb className="w-4 h-4" />, text: "Suggest study tips", color: "bg-accent" },
   ];
 
   const handleSendMessage = async () => {

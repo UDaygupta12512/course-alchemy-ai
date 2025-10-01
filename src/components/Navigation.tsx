@@ -73,7 +73,7 @@ const Navigation = () => {
             <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Brain className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold">EduSynth</span>
+            <span className="text-2xl font-bold">MindSphere AI</span>
           </div>
 
           {/* Desktop Navigation */}

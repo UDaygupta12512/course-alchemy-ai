@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Mail, CheckCircle, AlertCircle, Eye, EyeOff, Brain, Sparkles, Shield, Zap } from 'lucide-react';
 
 const Auth = () => {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -31,6 +32,10 @@ const Auth = () => {
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
+
+    if (isSignUp && !fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
 
     if (!email) {
       newErrors.email = 'Email is required';
@@ -96,7 +101,7 @@ const Auth = () => {
     setLoading(true);
     setErrors({});
     
-    const { error } = await signUpWithEmail(email, password);
+    const { error } = await signUpWithEmail(email, password, fullName.trim());
 
     if (error) {
       let errorMessage = error.message;
@@ -139,6 +144,7 @@ const Auth = () => {
   };
 
   const resetForm = () => {
+    setFullName('');
     setEmail('');
     setPassword('');
     setConfirmPassword('');
@@ -295,6 +301,34 @@ const Auth = () => {
 
             {/* Email Form */}
             <div className="space-y-4">
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      if (errors.fullName) setErrors(prev => ({...prev, fullName: ''}));
+                    }}
+                    className={`h-12 text-base ${errors.fullName ? 'border-red-500 focus:border-red-500' : ''}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        document.getElementById('email')?.focus();
+                      }
+                    }}
+                  />
+                  {errors.fullName && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {errors.fullName}
+                    </p>
+                  )}
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                 <Input
