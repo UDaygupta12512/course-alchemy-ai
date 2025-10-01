@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import AIChatAssistant from "@/components/AIChatAssistant";
 import { 
   BookOpen, 
   MessageSquare, 
@@ -38,6 +37,24 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent, gener
     strengths: [] as string[],
     improvementAreas: [] as string[]
   });
+  const [chatMessages, setChatMessages] = useState([
+    {
+      id: 1,
+      type: 'ai' as const,
+      message: "Hi! I'm your AI tutor for this course. I can help explain concepts, answer questions, and provide additional examples. What would you like to learn more about?"
+    },
+    {
+      id: 2,
+      type: 'user' as const,
+      message: "Can you explain neural networks in simple terms?"
+    },
+    {
+      id: 3,
+      type: 'ai' as const,
+      message: "Think of neural networks like your brain! Just as your brain has neurons that connect and pass information, artificial neural networks have nodes that process information. Each node receives input, processes it, and passes the result to the next layer. The network 'learns' by adjusting these connections based on examples, just like how you learn from experience! 🧠"
+    }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
 
   if (!isVisible) return null;
 
@@ -57,7 +74,41 @@ const CoursePreview = ({ isVisible, courseTitle, sourceType, inputContent, gener
       return "From a programming perspective, here's how you'd implement this: Start with data preprocessing, then define your model architecture, set up training loops, and finally evaluate performance. I can walk you through each step with code examples if you'd like!";
     } else if (message.includes('thank') || message.includes('thanks')) {
       return "You're welcome! I'm here to help you master these concepts. Feel free to ask about any part of the course material - whether it's theory, practical applications, or implementation details.";
+    } else {
+      // Default varied responses
+      const defaultResponses = [
+        "That's an insightful question! Based on the course material, this topic connects to several key principles we've discussed. Let me elaborate on the most important aspects.",
+        "Excellent point! This concept is fundamental to understanding the broader framework. I can provide specific examples and walk through the reasoning step by step.",
+        "I can definitely help with that! This is a common area where students need clarification. Let me explain it using analogies and practical examples from the course.",
+        "Great question! This relates directly to what we covered in the previous sections. The key insight here is understanding how different components work together.",
+        "That's a topic that often requires deeper explanation. Based on the course content, here are the essential points you need to understand about this concept."
+      ];
+      return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
     }
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+    
+    const userMessage = {
+      id: Date.now(),
+      type: 'user' as const,
+      message: newMessage
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
+    const currentMessage = newMessage;
+    setNewMessage('');
+    
+    // Simulate AI response with contextual reply
+    setTimeout(() => {
+      const aiResponse = {
+        id: Date.now() + 1,
+        type: 'ai' as const,
+        message: getAIResponse(currentMessage)
+      };
+      setChatMessages(prev => [...prev, aiResponse]);
+    }, 1000);
   };
 
   const handleExportCourse = () => {
@@ -971,7 +1022,60 @@ Best Practices
             </TabsContent>
 
             <TabsContent value="tutor" className="space-y-4 mt-6">
-              <AIChatAssistant courseContext={`Course: ${courseTitle}\n\nCourse Content:\n${getCourseContent().notes.map(note => `${note.title}: ${note.content.substring(0, 200)}...`).join('\n\n')}`} />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">AI Tutor Chat</h3>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-muted-foreground">Online</span>
+                </div>
+              </div>
+              <Card className="border border-border/50">
+                <CardContent className="p-6">
+                  <div className="space-y-4 max-h-60 overflow-y-auto">
+                    {chatMessages.map((message) => (
+                      <div key={message.id} className={`flex items-start gap-3 ${message.type === 'user' ? 'justify-end' : ''}`}>
+                        {message.type === 'ai' && (
+                          <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
+                            <Brain className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        <div className={`flex-1 ${message.type === 'user' ? 'max-w-xs' : ''}`}>
+                          <p className={`text-sm rounded-lg p-3 ${
+                            message.type === 'ai' 
+                              ? 'bg-muted/50' 
+                              : 'bg-primary text-primary-foreground'
+                          }`}>
+                            {message.message}
+                          </p>
+                        </div>
+                        {message.type === 'user' && (
+                          <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium">You</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <input 
+                      type="text" 
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Ask your AI tutor anything..." 
+                      className="flex-1 px-4 py-3 border border-border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendMessage();
+                        }
+                      }}
+                    />
+                    <Button size="sm" className="px-4" onClick={handleSendMessage}>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 
