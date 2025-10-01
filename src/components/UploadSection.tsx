@@ -15,7 +15,6 @@ const UploadSection = () => {
   const [showCoursePreview, setShowCoursePreview] = useState(false);
   const [courseTitle, setCourseTitle] = useState("");
   const [sourceType, setSourceType] = useState<"youtube" | "pdf">("youtube");
-  const [inputContent, setInputContent] = useState("");
   const { toast } = useToast();
 
   const handleDrag = (e: React.DragEvent) => {
@@ -40,19 +39,7 @@ const UploadSection = () => {
     });
 
     setSourceType("youtube");
-    setInputContent(youtubeUrl);
-    
-    // Generate dynamic title based on URL
-    const generateTitleFromUrl = (url: string) => {
-      const urlObj = new URL(url);
-      if (urlObj.hostname.includes('youtube')) {
-        const videoId = urlObj.searchParams.get('v');
-        return `Course from YouTube Video (${videoId?.substring(0, 8) || 'Video'})`;
-      }
-      return "Course from YouTube Video";
-    };
-    
-    setCourseTitle(generateTitleFromUrl(youtubeUrl));
+    setCourseTitle("Introduction to Machine Learning - YouTube Video");
 
     // Simulate processing
     setTimeout(() => {
@@ -79,19 +66,7 @@ const UploadSection = () => {
     });
 
     setSourceType("pdf");
-    setInputContent(Array.from(files).map(f => f.name).join(", "));
-    
-    // Generate dynamic title based on file names
-    const generateTitleFromFiles = (fileList: FileList) => {
-      const fileNames = Array.from(fileList).map(f => f.name.replace('.pdf', ''));
-      if (fileList.length === 1) {
-        return `Course: ${fileNames[0]}`;
-      } else {
-        return `Multi-PDF Course (${fileList.length} documents)`;
-      }
-    };
-    
-    setCourseTitle(generateTitleFromFiles(files));
+    setCourseTitle(`Course from ${files.length} PDF file(s)`);
 
     // Simulate processing
     setTimeout(() => {
@@ -274,7 +249,6 @@ const UploadSection = () => {
             isVisible={showCoursePreview}
             courseTitle={courseTitle}
             sourceType={sourceType}
-            inputContent={inputContent}
           />
         </div>
       </div>
