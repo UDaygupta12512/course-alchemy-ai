@@ -16,20 +16,17 @@ serve(async (req) => {
 
   try {
     const { message, courseContext } = await req.json();
-    
-    console.log('AI Tutor request:', { message, courseContext });
 
     if (!message) {
       throw new Error('Message is required');
     }
 
     if (!openAIApiKey) {
-      console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
 
     // Create system prompt for AI tutor
-    const systemPrompt = `You are an AI learning tutor assistant for MindSphere AI. Your role is to help students understand course content, answer questions, and provide educational guidance. 
+    const systemPrompt = `You are an AI learning tutor assistant. Your role is to help students understand course content, answer questions, and provide educational guidance. 
 
 ${courseContext ? `Course Context: ${courseContext}` : ''}
 
@@ -39,10 +36,7 @@ Guidelines:
 - Provide examples when helpful
 - Ask follow-up questions to ensure understanding
 - Keep responses concise but thorough
-- If you don't know something, say so and suggest how the student might find the answer
-- Always maintain a supportive and positive tone`;
-
-    console.log('Making OpenAI API request...');
+- If you don't know something, say so and suggest how the student might find the answer`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -70,25 +64,20 @@ Guidelines:
     }
 
     const data = await response.json();
-    console.log('OpenAI API response received');
+    console.log('OpenAI API response data:', JSON.stringify(data, null, 2));
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid response format from OpenAI API:', data);
       throw new Error('Invalid response format from OpenAI API');
     }
     
     const aiResponse = data.choices[0].message.content;
-    console.log('AI response generated successfully');
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in ai-tutor-chat function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      details: 'Please check the console logs for more information'
-    }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
