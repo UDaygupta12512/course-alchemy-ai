@@ -2,7 +2,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, X, FileText, MessageSquare, Brain, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Play, X, FileText, MessageSquare, Brain, Clock, CheckCircle, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface DemoModalProps {
   isOpen: boolean;
@@ -10,26 +12,85 @@ interface DemoModalProps {
 }
 
 const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [generatedContent, setGeneratedContent] = useState<string[]>([]);
+
   const demoSteps = [
     {
       title: "Upload Content",
-      description: "Drag & drop a PDF or paste YouTube URL",
-      duration: "30 seconds",
+      description: "Processing YouTube video: 'Introduction to Machine Learning'",
+      duration: 2000,
       icon: <FileText className="w-5 h-5" />
     },
     {
       title: "AI Analysis", 
-      description: "Our AI processes and extracts key concepts",
-      duration: "2-3 minutes",
+      description: "Extracting key concepts, definitions, and learning objectives",
+      duration: 3000,
       icon: <Brain className="w-5 h-5" />
     },
     {
       title: "Course Generation",
-      description: "Complete course with notes, quizzes & tutor",
-      duration: "1 minute",
+      description: "Creating notes, quizzes, flashcards, and AI tutor",
+      duration: 2000,
       icon: <MessageSquare className="w-5 h-5" />
     }
   ];
+
+  const sampleContent = [
+    "📝 Generated comprehensive lecture notes on ML fundamentals",
+    "🧠 Created 8 interactive quiz questions about supervised learning",
+    "💡 Generated 12 flashcards for key ML concepts",
+    "🤖 AI Tutor ready to answer questions about the content"
+  ];
+
+  const startDemo = () => {
+    setIsPlaying(true);
+    setCurrentStep(0);
+    setProgress(0);
+    setGeneratedContent([]);
+    
+    let totalDuration = 0;
+    demoSteps.forEach((step, index) => {
+      setTimeout(() => {
+        setCurrentStep(index);
+        setGeneratedContent(prev => [...prev, sampleContent[index] || ""]);
+        
+        // Animate progress within each step
+        const stepDuration = step.duration;
+        const interval = setInterval(() => {
+          setProgress(prev => {
+            const newProgress = prev + (100 / demoSteps.length / (stepDuration / 100));
+            if (newProgress >= (index + 1) * (100 / demoSteps.length)) {
+              clearInterval(interval);
+              return (index + 1) * (100 / demoSteps.length);
+            }
+            return newProgress;
+          });
+        }, stepDuration / 100);
+        
+      }, totalDuration);
+      totalDuration += step.duration;
+    });
+
+    // Complete demo
+    setTimeout(() => {
+      setCurrentStep(demoSteps.length);
+      setProgress(100);
+      setGeneratedContent(sampleContent);
+    }, totalDuration);
+  };
+
+  // Reset demo when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsPlaying(false);
+      setCurrentStep(0);
+      setProgress(0);
+      setGeneratedContent([]);
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -44,23 +105,89 @@ const DemoModal = ({ isOpen, onClose }: DemoModalProps) => {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Demo Video Placeholder */}
-          <div className="relative bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl overflow-hidden">
-            <div className="aspect-video flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Play className="w-8 h-8 text-white" />
+          {/* Interactive Demo */}
+          <div className="relative bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl overflow-hidden p-6">
+            <div className="aspect-video flex flex-col justify-center">
+              {!isPlaying ? (
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Play className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Interactive Demo</h3>
+                  <p className="text-white/80 mb-4">Watch EduSynth transform content into a complete course in real-time</p>
+                  <Button variant="hero" onClick={startDemo}>
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Live Demo (7 seconds)
+                  </Button>
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Interactive Demo Video</h3>
-                <p className="text-white/80 mb-4">See EduSynth transform a YouTube video into a complete course</p>
-                <Button variant="hero" onClick={() => {
-                  // In a real app, this would play a demo video
-                  alert("Demo video would play here! For now, try the live demo below by uploading content.");
-                }}>
-                  <Play className="w-4 h-4 mr-2" />
-                  Play Demo (3:45)
-                </Button>
-              </div>
+              ) : (
+                <div className="space-y-6 text-white">
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold mb-2">Processing: Introduction to Machine Learning</h3>
+                    <Progress value={progress} className="w-full max-w-md mx-auto mb-4" />
+                    <p className="text-white/80 text-sm">{Math.round(progress)}% Complete</p>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {demoSteps.map((step, index) => (
+                      <Card key={index} className={`border ${
+                        index < currentStep ? 'border-green-500 bg-green-500/10' :
+                        index === currentStep ? 'border-yellow-500 bg-yellow-500/10' :
+                        'border-border/30 bg-background/50'
+                      }`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              index < currentStep ? 'bg-green-500' :
+                              index === currentStep ? 'bg-yellow-500' :
+                              'bg-muted'
+                            }`}>
+                              {index < currentStep ? 
+                                <CheckCircle className="w-4 h-4 text-white" /> :
+                                index === currentStep ?
+                                <Loader2 className="w-4 h-4 text-white animate-spin" /> :
+                                step.icon
+                              }
+                            </div>
+                            <Badge variant={index <= currentStep ? "default" : "outline"} className="text-xs">
+                              Step {index + 1}
+                            </Badge>
+                          </div>
+                          <h4 className="font-semibold mb-2">{step.title}</h4>
+                          <p className="text-sm text-muted-foreground">{step.description}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {generatedContent.length > 0 && (
+                    <div className="bg-background/90 rounded-lg p-4 backdrop-blur-sm">
+                      <h4 className="font-semibold text-foreground mb-3">✨ Generated Content:</h4>
+                      <div className="space-y-2">
+                        {generatedContent.map((content, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm text-foreground animate-fade-in">
+                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            {content}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {currentStep >= demoSteps.length && (
+                    <div className="text-center">
+                      <Button variant="hero" className="bg-white text-primary hover:bg-white/90" onClick={() => {
+                        onClose();
+                        setTimeout(() => {
+                          document.getElementById('upload-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                      }}>
+                        Try With Your Own Content
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
