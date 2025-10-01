@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Navigation from '@/components/Navigation';
+import BackButton from '@/components/BackButton';
 import { toast } from 'sonner';
 
 const Explore = () => {
@@ -141,9 +142,12 @@ const Explore = () => {
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Explore Learning Content
-            </h1>
+            <div className="flex items-center gap-4 mb-4 justify-center">
+              <BackButton />
+              <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                Explore Learning Content
+              </h1>
+            </div>
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
               Discover AI-powered courses, study tools, and educational resources tailored to your learning journey
             </p>
