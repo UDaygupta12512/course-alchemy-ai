@@ -1,59 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Rate limiting map (userId -> { count, resetTime })
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT = 10; // requests per window
-const RATE_LIMIT_WINDOW = 60000; // 1 minute
-
-const validateInput = (data: any) => {
-  if (!data.sourceType || !data.content) {
-    throw new Error("Missing required fields: sourceType and content");
-  }
-  
-  if (!["youtube", "pdf", "text"].includes(data.sourceType)) {
-    throw new Error("Invalid sourceType. Must be youtube, pdf, or text");
-  }
-  
-  if (typeof data.content !== "string" || data.content.trim().length === 0) {
-    throw new Error("Content must be a non-empty string");
-  }
-  
-  if (data.content.length > 10000) {
-    throw new Error("Content exceeds maximum length of 10000 characters");
-  }
-  
-  return {
-    sourceType: data.sourceType,
-    content: data.content.trim(),
-  };
-};
-
-const checkRateLimit = (userId: string): boolean => {
-  const now = Date.now();
-  const userLimit = rateLimitMap.get(userId);
-  
-  if (!userLimit || now > userLimit.resetTime) {
-    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
-    return true;
-  }
-  
-  if (userLimit.count >= RATE_LIMIT) {
-    return false;
-  }
-  
-  userLimit.count++;
-  return true;
 };
 
 serve(async (req) => {
@@ -62,141 +14,95 @@ serve(async (req) => {
   }
 
   try {
-    // Verify JWT token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.error('Missing authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.error('Authentication failed:', authError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check rate limit
-    if (!checkRateLimit(user.id)) {
-      console.warn(`Rate limit exceeded for user ${user.id}`);
-      return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`Processing request for user ${user.id}`);
-
-    // Validate input
-    const requestData = await req.json();
-    const { sourceType, content } = validateInput(requestData);
-    const { title } = requestData;
-    
-    console.log('Received request:', { sourceType, content: content?.substring(0, 100), title });
+    const { sourceType, content, title } = await req.json();
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Create prompt based on source type
-    let prompt = '';
-    
+    // Generate comprehensive course content based on input
+    const systemPrompt = `You are an expert educational content creator. Generate clear, simple, and well-structured course content. Make notes easy to read with each key point on a new line. Create practical flashcards with concise definitions. Focus on clarity and comprehension.`;
+
+    let userPrompt = '';
     if (sourceType === 'youtube') {
-      prompt = `Create educational content from this YouTube video URL: ${content}
+      userPrompt = `Based on this YouTube video: "${content}", create a comprehensive course titled "${title}". Generate:
 
-Please generate comprehensive course material in the following JSON format:
-{
-  "notes": [
-    {
-      "title": "Section Title",
-      "content": "Detailed notes content with key concepts and explanations"
-    }
-  ],
-  "quizzes": [
-    {
-      "question": "Question text",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 0,
-      "explanation": "Explanation of why this answer is correct"
-    }
-  ],
-  "flashcards": [
-    {
-      "front": "Term or concept",
-      "back": "Definition or explanation"
-    }
-  ]
-}
+1. DETAILED NOTES (3 sections):
+   ### Section 1 Title
+   - Key point 1
+   - Key point 2
+   - Key point 3
+   
+   ### Section 2 Title
+   - Key point 1
+   - Key point 2
+   - Key point 3
+   
+   ### Section 3 Title
+   - Key point 1
+   - Key point 2
+   - Key point 3
 
-Generate at least 5 comprehensive note sections, 10 quiz questions, and 15 flashcards based on the video content.`;
-    } else if (sourceType === 'pdf') {
-      prompt = `Create educational content from these PDF files: ${content}
+2. CHALLENGING QUIZZES (5 questions):
+   **Question 1:** [Question text]
+   a) Option 1
+   b) Option 2
+   c) Option 3
+   d) Option 4
+   **Correct:** a
+   **Explanation:** [Brief explanation]
 
-Please generate comprehensive course material in the following JSON format:
-{
-  "notes": [
-    {
-      "title": "Section Title", 
-      "content": "Detailed notes content with key concepts and explanations"
-    }
-  ],
-  "quizzes": [
-    {
-      "question": "Question text",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 0,
-      "explanation": "Explanation of why this answer is correct"
-    }
-  ],
-  "flashcards": [
-    {
-      "front": "Term or concept",
-      "back": "Definition or explanation"
-    }
-  ]
-}
+3. FLASHCARDS (8 practical cards):
+   **Front:** [Key term, concept, or question]
+   **Back:** [One-sentence clear explanation or answer]
+   
+   **Front:** [Important process or method]
+   **Back:** [Step-by-step summary in 2-3 lines max]
 
-Generate at least 5 comprehensive note sections, 10 quiz questions, and 15 flashcards based on the PDF content.`;
+   **Front:** [Practical application]
+   **Back:** [Real-world example or use case]
+
+Create flashcards that test understanding, not just memorization. Each back should be 1-2 sentences maximum. Focus on the most important concepts that learners need to remember.`;
     } else {
-      prompt = `Create educational content from this input: ${content}
+      userPrompt = `Based on this PDF document: "${content}", create a comprehensive course titled "${title}". Generate:
 
-Please generate comprehensive course material in the following JSON format:
-{
-  "notes": [
-    {
-      "title": "Section Title",
-      "content": "Detailed notes content with key concepts and explanations"
-    }
-  ],
-  "quizzes": [
-    {
-      "question": "Question text", 
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 0,
-      "explanation": "Explanation of why this answer is correct"
-    }
-  ],
-  "flashcards": [
-    {
-      "front": "Term or concept",
-      "back": "Definition or explanation"
-    }
-  ]
-}
+1. DETAILED NOTES (3 sections):
+   ### Section 1 Title
+   - Key point 1
+   - Key point 2
+   - Key point 3
+   
+   ### Section 2 Title
+   - Key point 1
+   - Key point 2
+   - Key point 3
+   
+   ### Section 3 Title
+   - Key point 1
+   - Key point 2
+   - Key point 3
 
-Generate at least 5 comprehensive note sections, 10 quiz questions, and 15 flashcards.`;
-    }
+2. CHALLENGING QUIZZES (5 questions):
+   **Question 1:** [Question text]
+   a) Option 1
+   b) Option 2
+   c) Option 3
+   d) Option 4
+   **Correct:** a
+   **Explanation:** [Brief explanation]
 
-    console.log('Making OpenAI API call...');
+3. FLASHCARDS (8 practical cards):
+   **Front:** [Key term, concept, or question]
+   **Back:** [One-sentence clear explanation or answer]
+   
+   **Front:** [Important process or method]
+   **Back:** [Step-by-step summary in 2-3 lines max]
+
+   **Front:** [Practical application]
+   **Back:** [Real-world example or use case]
+
+Create flashcards that test understanding, not just memorization. Each back should be 1-2 sentences maximum. Focus on the most important concepts that learners need to remember.`;
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -207,11 +113,8 @@ Generate at least 5 comprehensive note sections, 10 quiz questions, and 15 flash
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert educational content creator. Always respond with valid JSON in exactly the format requested. Generate high-quality, comprehensive educational content including detailed notes, challenging quiz questions, and useful flashcards.'
-          },
-          { role: 'user', content: prompt }
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
         ],
         temperature: 0.7,
         max_tokens: 4000,
@@ -219,88 +122,128 @@ Generate at least 5 comprehensive note sections, 10 quiz questions, and 15 flash
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
+      throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI response received');
-    
     const generatedContent = data.choices[0].message.content;
-    console.log('Generated content preview:', generatedContent.substring(0, 200));
 
-    // Parse the JSON response from OpenAI
-    let courseContent;
-    try {
-      // Clean the response to extract JSON
-      const jsonMatch = generatedContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        courseContent = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No valid JSON found in response');
-      }
-    } catch (parseError) {
-      console.error('JSON parsing error:', parseError);
-      console.error('Raw content:', generatedContent);
+    // Parse the generated content to extract structured data
+    const parseContent = (content: string) => {
+      const sections = content.split(/(?=\d+\.\s+(?:DETAILED NOTES|CHALLENGING QUIZZES|FLASHCARDS))/);
       
-      // Fallback: create structured content from the text response
-      courseContent = {
-        notes: [
-          {
-            title: "Generated Content",
-            content: generatedContent
+      const notes = [];
+      const quizzes = [];
+      const flashcards = [];
+
+      sections.forEach(section => {
+        if (section.includes('DETAILED NOTES')) {
+          // Extract notes sections
+          const noteMatches = section.match(/### (.+?)\n([\s\S]*?)(?=###|$)/g);
+          if (noteMatches) {
+            noteMatches.forEach(match => {
+              const [, title] = match.match(/### (.+?)\n/) || [];
+              let content = match.replace(/### .+?\n/, '').trim();
+              
+              // Format content for better readability - convert bullet points to proper format
+              content = content
+                .replace(/^-\s+/gm, '• ')  // Convert - to bullet points
+                .replace(/^\*\s+/gm, '• ') // Convert * to bullet points
+                .replace(/\n\n+/g, '\n\n') // Clean up extra line breaks
+                .trim();
+              
+              if (title && content) {
+                notes.push({
+                  title,
+                  content,
+                  duration: `${Math.ceil(content.split(' ').length / 200)} min read`
+                });
+              }
+            });
           }
-        ],
-        quizzes: [
-          {
-            question: "What is the main topic of this content?",
-            options: ["Topic A", "Topic B", "Topic C", "Topic D"],
-            correctAnswer: 0,
-            explanation: "This is the primary focus of the material."
+        } else if (section.includes('CHALLENGING QUIZZES')) {
+          // Extract quiz questions
+          const quizMatches = section.match(/\*\*Question \d+:\*\*(.+?)(?=\*\*Question \d+:\*\*|$)/gs);
+          if (quizMatches) {
+            quizMatches.forEach(match => {
+              const questionMatch = match.match(/\*\*Question \d+:\*\*\s*(.+?)\n/);
+              const optionsMatch = match.match(/(?:a\)|A\)).+/g);
+              const correctMatch = match.match(/\*\*Correct:\*\*\s*([a-dA-D])/);
+              const explanationMatch = match.match(/\*\*Explanation:\*\*\s*([\s\S]+?)(?=\n\n|$)/);
+
+              if (questionMatch && optionsMatch && correctMatch) {
+                const options = optionsMatch.map(opt => opt.replace(/^[a-dA-D]\)\s*/, ''));
+                const correctIndex = correctMatch[1].toLowerCase().charCodeAt(0) - 97;
+                
+                quizzes.push({
+                  question: questionMatch[1].trim(),
+                  options,
+                  correct: correctIndex,
+                  explanation: explanationMatch ? explanationMatch[1].trim() : 'Explanation not provided.'
+                });
+              }
+            });
           }
-        ],
-        flashcards: [
-          {
-            front: "Key Concept",
-            back: "This represents the main learning objective from the content."
+        } else if (section.includes('FLASHCARDS')) {
+          // Extract flashcards
+          const cardMatches = section.match(/\*\*Front:\*\*(.+?)\*\*Back:\*\*(.+?)(?=\*\*Front:|$)/gs);
+          if (cardMatches) {
+            cardMatches.forEach(match => {
+              const frontMatch = match.match(/\*\*Front:\*\*\s*(.+?)(?:\n|\*\*Back)/);
+              const backMatch = match.match(/\*\*Back:\*\*\s*([\s\S]+?)(?=\n\n|\*\*Front:|$)/);
+              
+              if (frontMatch && backMatch) {
+                const front = frontMatch[1].trim();
+                let back = backMatch[1].trim();
+                
+                // Clean up the back content - remove extra formatting and keep it concise
+                back = back
+                  .replace(/\n+/g, ' ')  // Replace line breaks with spaces
+                  .replace(/\s+/g, ' ')  // Clean up multiple spaces
+                  .trim();
+                
+                flashcards.push({
+                  front,
+                  back,
+                  category: "Key Concepts"
+                });
+              }
+            });
           }
-        ]
-      };
+        }
+      });
+
+      return { notes, quizzes, flashcards };
+    };
+
+    const parsedContent = parseContent(generatedContent);
+
+    // Fallback content if parsing fails
+    if (parsedContent.notes.length === 0) {
+      parsedContent.notes = [
+        {
+          title: "Core Concepts and Fundamentals",
+          content: generatedContent.substring(0, 800) + "...",
+          duration: "8 min read"
+        }
+      ];
     }
 
-    // Ensure we have the required structure
-    if (!courseContent.notes) courseContent.notes = [];
-    if (!courseContent.quizzes) courseContent.quizzes = [];
-    if (!courseContent.flashcards) courseContent.flashcards = [];
-
-    console.log('Course content structure:', {
-      notes: courseContent.notes.length,
-      quizzes: courseContent.quizzes.length,
-      flashcards: courseContent.flashcards.length
-    });
-
-    return new Response(JSON.stringify(courseContent), {
+    return new Response(JSON.stringify({
+      success: true,
+      courseContent: parsedContent,
+      rawContent: generatedContent
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (error) {
-    console.error('Error in generate-course-content function:', error instanceof Error ? error.message : 'Unknown error');
-    
-    const statusCode = error instanceof Error && error.message.includes('Rate limit') ? 429 :
-                       error instanceof Error && (error.message.includes('Invalid') || error.message.includes('Missing')) ? 400 : 500;
-    
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to generate course content',
-        notes: [],
-        quizzes: [],
-        flashcards: []
-      }),
-      { 
-        status: statusCode,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    console.error('Error in generate-course-content function:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });

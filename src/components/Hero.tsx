@@ -55,8 +55,8 @@ const Hero = () => {
                 className="text-lg px-8"
                 onClick={handleGetStarted}
               >
-                Start Creating
-                <ArrowRight className="w-5 h-5" />
+                Start Creating Now
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
                 variant="outline" 
@@ -64,7 +64,8 @@ const Hero = () => {
                 className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 onClick={handleWatchDemo}
               >
-                Watch Demo
+                View Examples
+                <BookOpen className="w-5 h-5 ml-2" />
               </Button>
             </div>
             

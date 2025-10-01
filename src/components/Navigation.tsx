@@ -1,28 +1,60 @@
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X } from "lucide-react";
+import { Brain, Menu, X, Maximize, Minimize, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
-  const handleAuthClick = () => {
-    if (user) {
-      navigate("/dashboard");
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      });
     } else {
-      navigate("/auth");
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      });
+    }
+  };
+
+  const handleSignIn = () => {
+    navigate('/auth');
+  };
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error('Error signing out');
+    } else {
+      toast.success('Signed out successfully');
+      navigate('/');
     }
   };
 
   const handleGetStarted = () => {
-    // Scroll to upload section
-    const uploadSection = document.getElementById('upload-section');
-    if (uploadSection) {
-      uploadSection.scrollIntoView({ behavior: 'smooth' });
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      // Scroll to upload section
+      const uploadSection = document.getElementById('upload-section');
+      if (uploadSection) {
+        uploadSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }
+  };
+
+  const getDisplayName = () => {
+    const meta: any = user?.user_metadata;
+    const name = meta?.full_name || meta?.name || (meta?.given_name && meta?.family_name ? `${meta.given_name} ${meta.family_name}` : undefined);
+    if (name) return name as string;
+    const local = user?.email?.split('@')[0] || 'User';
+    return local.replace(/[\._-]+/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   const navItems = [
@@ -73,10 +105,31 @@ const Navigation = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" onClick={handleAuthClick}>
-              {user ? "Dashboard" : "Sign In"}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
             </Button>
-            <Button variant="hero" onClick={handleGetStarted}>Get Started</Button>
+            {user ? (
+              <>
+                <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-md">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">{getDisplayName()}</span>
+                </div>
+                <Button variant="ghost" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={handleSignIn}>Sign In</Button>
+                <Button variant="hero" onClick={handleGetStarted}>Get Started</Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -120,10 +173,30 @@ const Navigation = () => {
                 }
               })}
               <div className="px-4 pt-4 space-y-2">
-                <Button variant="ghost" className="w-full" onClick={handleAuthClick}>
-                  {user ? "Dashboard" : "Sign In"}
+                <Button
+                  variant="ghost"
+                  onClick={toggleFullscreen}
+                  className="w-full"
+                >
+                  {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                 </Button>
-                <Button variant="hero" className="w-full" onClick={handleGetStarted}>Get Started</Button>
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
+                      <User className="w-4 h-4" />
+                      <span className="text-sm font-medium">{getDisplayName()}</span>
+                    </div>
+                    <Button variant="ghost" className="w-full" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" className="w-full" onClick={handleSignIn}>Sign In</Button>
+                    <Button variant="hero" className="w-full" onClick={handleGetStarted}>Get Started</Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
