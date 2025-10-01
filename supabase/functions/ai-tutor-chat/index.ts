@@ -40,7 +40,10 @@ Guidelines:
 - Ask follow-up questions to ensure understanding
 - Keep responses concise but thorough
 - If you don't know something, say so and suggest how the student might find the answer
-- Always maintain a supportive and positive tone`;
+- Always maintain a supportive and positive tone
+- Format your responses with clear structure: use bullet points or numbered lists when listing multiple items
+- Put each main point on a separate line for better readability
+- Use line breaks between different concepts or topics`;
 
     console.log('Making OpenAI API request...');
 

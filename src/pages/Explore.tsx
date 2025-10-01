@@ -133,6 +133,7 @@ const Explore = () => {
 
   const handleEnroll = (courseId: number, title: string) => {
     toast.success(`Successfully enrolled in "${title}"!`);
+    console.log('Enrolled in course:', courseId, title);
   };
 
   return (
