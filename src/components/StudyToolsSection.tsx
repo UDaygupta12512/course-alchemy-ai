@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { 
   FileText, 
   Target, 
@@ -15,6 +17,8 @@ import {
 } from "lucide-react";
 
 const StudyToolsSection = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const tools = [
     {
       icon: <FileText className="w-8 h-8" />,
@@ -67,6 +71,17 @@ const StudyToolsSection = () => {
     }
   ];
 
+  const handleExploreTool = (toolTitle: string) => {
+    toast({
+      title: "Tool Demo",
+      description: `${toolTitle} demo is coming soon! Sign up to get notified when it's available.`,
+    });
+  };
+
+  const handleGetStarted = () => {
+    navigate('/auth');
+  };
+
   return (
     <section className="py-20 bg-background">
       <div className="max-w-7xl mx-auto px-6">
@@ -115,7 +130,11 @@ const StudyToolsSection = () => {
                     </div>
                   ))}
                 </div>
-                <Button variant="outline" className="w-full group/btn hover:bg-primary hover:text-primary-foreground">
+                <Button 
+                  variant="outline" 
+                  className="w-full group/btn hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => handleExploreTool(tool.title)}
+                >
                   Explore Tool
                   <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
@@ -163,7 +182,12 @@ const StudyToolsSection = () => {
               <p className="text-white/90 mb-6 max-w-md">
                 Join thousands of students who have already supercharged their studies with our AI tools.
               </p>
-              <Button variant="secondary" size="lg" className="bg-white text-primary hover:bg-white/90">
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="bg-white text-primary hover:bg-white/90"
+                onClick={handleGetStarted}
+              >
                 Get Started Free
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>

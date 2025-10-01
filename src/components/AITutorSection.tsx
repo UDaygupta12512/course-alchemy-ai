@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   MessageSquare, 
   Brain, 
@@ -11,8 +13,10 @@ import {
   Sparkles,
   Zap
 } from "lucide-react";
+import AIChatAssistant from "./AIChatAssistant";
 
 const AITutorSection = () => {
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
   const tutorFeatures = [
     {
       icon: <MessageSquare className="w-6 h-6" />,
@@ -78,10 +82,20 @@ const AITutorSection = () => {
               ))}
             </div>
 
-            <Button className="group" size="lg">
-              Try AI Tutor Now
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <Dialog open={isDemoOpen} onOpenChange={setIsDemoOpen}>
+              <DialogTrigger asChild>
+                <Button className="group" size="lg">
+                  Try AI Tutor Now
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle>AI Tutor Demo</DialogTitle>
+                </DialogHeader>
+                <AIChatAssistant courseContext="Demo course - Feel free to ask any educational questions!" />
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Right Content - Demo Chat */}
