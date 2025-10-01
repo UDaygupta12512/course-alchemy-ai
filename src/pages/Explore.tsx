@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Navigation from '@/components/Navigation';
 import BackButton from '@/components/BackButton';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const Explore = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
@@ -132,8 +134,10 @@ const Explore = () => {
   });
 
   const handleEnroll = (courseId: number, title: string) => {
-    toast.success(`Successfully enrolled in "${title}"!`);
     console.log('Enrolled in course:', courseId, title);
+    toast.success(`Successfully enrolled in "${title}"!`);
+    // Navigate to dashboard or course page
+    navigate('/dashboard');
   };
 
   return (
