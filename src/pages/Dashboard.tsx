@@ -154,7 +154,7 @@ const Dashboard = () => {
                   <Brain className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">Course Alchemy</span>
+                  <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">MindSphere AI</span>
                   <p className="text-xs text-muted-foreground font-medium">Learning Dashboard</p>
                 </div>
               </Link>
@@ -367,10 +367,16 @@ const Dashboard = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <Button 
+                     <Button 
                       variant="hero" 
                       className="w-full justify-start h-12 rounded-xl shadow-card"
-                      onClick={() => setActiveTab("courses")}
+                      onClick={() => {
+                        setActiveTab("courses");
+                        toast({
+                          title: "YouTube Video Creator",
+                          description: "Create interactive courses from YouTube videos coming soon!",
+                        });
+                      }}
                     >
                       <Play className="w-4 h-4 mr-3" />
                       YouTube Video

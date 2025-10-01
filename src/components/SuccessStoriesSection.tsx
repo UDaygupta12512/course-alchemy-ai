@@ -17,7 +17,7 @@ const SuccessStoriesSection = () => {
       role: "Medical Student",
       university: "Stanford University",
       avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b77c?w=150&h=150&fit=crop&crop=face",
-      story: "Course Alchemy transformed my study routine completely. I was struggling with biochemistry until I started using the AI tutor. The personalized explanations and adaptive quizzes helped me understand complex molecular processes in ways my textbook never could.",
+      story: "MindSphere AI transformed my study routine completely. I was struggling with biochemistry until I started using the AI tutor. The personalized explanations and adaptive quizzes helped me understand complex molecular processes in ways my textbook never could.",
       achievement: "Improved GPA from 3.2 to 3.8",
       timeframe: "In 6 months",
       rating: 5,
@@ -39,7 +39,7 @@ const SuccessStoriesSection = () => {
       role: "Law Student",
       university: "Harvard Law",
       avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-      story: "Preparing for the bar exam was overwhelming until I discovered Course Alchemy. The AI tutor helped me break down complex legal concepts, and the progress tracking kept me motivated. I passed on my first attempt with a score in the top 10%.",
+      story: "Preparing for the bar exam was overwhelming until I discovered MindSphere AI. The AI tutor helped me break down complex legal concepts, and the progress tracking kept me motivated. I passed on my first attempt with a score in the top 10%.",
       achievement: "Top 10% bar exam score",
       timeframe: "First attempt",
       rating: 5,
@@ -85,7 +85,7 @@ const SuccessStoriesSection = () => {
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Discover how students from top universities are transforming their academic performance 
-            and achieving their goals with Course Alchemy's AI-powered learning platform.
+            and achieving their goals with MindSphere AI's AI-powered learning platform.
           </p>
         </div>
 
