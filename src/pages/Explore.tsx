@@ -1,308 +1,263 @@
-import { useState } from 'react';
-import { Search, Filter, Star, Clock, Users, BookOpen, Video, FileText, Brain, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Navigation from '@/components/Navigation';
-import BackButton from '@/components/BackButton';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  BookOpen, 
+  Brain, 
+  Clock, 
+  Star,
+  TrendingUp,
+  Users,
+  Play,
+  ChevronRight,
+  Filter,
+  Search
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Explore = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('popular');
+  const navigate = useNavigate();
 
-  const categories = [
-    { id: 'all', label: 'All', icon: BookOpen },
-    { id: 'ai-courses', label: 'AI Courses', icon: Brain },
-    { id: 'study-tools', label: 'Study Tools', icon: Zap },
-    { id: 'videos', label: 'Videos', icon: Video },
-    { id: 'documents', label: 'Documents', icon: FileText },
-  ];
+  const handleEnrollNow = () => {
+    navigate("/dashboard");
+  };
 
-  const featuredContent = [
+  const handleUseTool = () => {
+    navigate("/dashboard");
+  };
+
+  const featuredCourses = [
     {
       id: 1,
-      title: 'Machine Learning Fundamentals',
-      description: 'Comprehensive course covering the basics of machine learning algorithms and applications.',
-      category: 'ai-courses',
+      title: "Complete React.js Masterclass",
+      instructor: "John Smith",
       rating: 4.8,
-      students: 1234,
-      duration: '8 hours',
-      level: 'Beginner',
-      thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=200&fit=crop',
-      tags: ['AI', 'Machine Learning', 'Python'],
-      instructor: 'Dr. Sarah Chen',
-      price: 'Free'
+      students: 12543,
+      duration: "8h 30m",
+      level: "Beginner",
+      price: "Free",
+      thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=250&fit=crop",
+      description: "Learn React.js from scratch with hands-on projects and real-world examples."
     },
     {
       id: 2,
-      title: 'AI-Powered Study Assistant',
-      description: 'Interactive tool that helps you create personalized study plans and track progress.',
-      category: 'study-tools',
+      title: "Machine Learning Fundamentals",
+      instructor: "Dr. Sarah Johnson",
       rating: 4.9,
-      students: 856,
-      duration: 'Unlimited',
-      level: 'All Levels',
-      thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop',
-      tags: ['Study Tools', 'AI Assistant', 'Productivity'],
-      instructor: 'MindSphere AI',
-      price: 'Premium'
+      students: 8921,
+      duration: "12h 15m",
+      level: "Intermediate",
+      price: "$49",
+      thumbnail: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop",
+      description: "Master the basics of machine learning with Python and scikit-learn."
     },
     {
       id: 3,
-      title: 'Deep Learning with Neural Networks',
-      description: 'Advanced course on neural networks, backpropagation, and deep learning architectures.',
-      category: 'ai-courses',
+      title: "Advanced JavaScript Patterns",
+      instructor: "Mike Wilson",
       rating: 4.7,
-      students: 967,
-      duration: '12 hours',
-      level: 'Advanced',
-      thumbnail: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=400&h=200&fit=crop',
-      tags: ['Deep Learning', 'Neural Networks', 'TensorFlow'],
-      instructor: 'Prof. Alex Kumar',
-      price: '$49'
+      students: 6754,
+      duration: "6h 45m",
+      level: "Advanced",
+      price: "$29",
+      thumbnail: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&h=250&fit=crop",
+      description: "Deep dive into advanced JavaScript concepts and design patterns."
     },
     {
       id: 4,
-      title: 'Introduction to Data Science',
-      description: 'Learn data analysis, visualization, and statistical methods with real-world projects.',
-      category: 'ai-courses',
-      rating: 4.6,
-      students: 2134,
-      duration: '10 hours',
-      level: 'Intermediate',
-      thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=200&fit=crop',
-      tags: ['Data Science', 'Statistics', 'Python', 'R'],
-      instructor: 'Dr. Maria Rodriguez',
-      price: '$29'
+      title: "Data Science with Python",
+      instructor: "Emily Chen",
+      rating: 4.8,
+      students: 9876,
+      duration: "10h 20m",
+      level: "Beginner",
+      price: "Free",
+      thumbnail: "https://images.unsplash.com/photo-1518932945647-7a1c969f8be2?w=400&h=250&fit=crop",
+      description: "Learn data analysis and visualization with Python, pandas, and matplotlib."
     },
     {
       id: 5,
-      title: 'Smart Flashcards Generator',
-      description: 'AI-powered tool that creates intelligent flashcards from your study materials.',
-      category: 'study-tools',
-      rating: 4.8,
-      students: 1456,
-      duration: 'Unlimited',
-      level: 'All Levels',
-      thumbnail: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=200&fit=crop',
-      tags: ['Flashcards', 'Memory', 'AI Generated'],
-      instructor: 'MindSphere AI',
-      price: 'Free'
+      title: "UI/UX Design Principles",
+      instructor: "Alex Rodriguez",
+      rating: 4.6,
+      students: 5432,
+      duration: "7h 10m",
+      level: "Beginner",
+      price: "$39",
+      thumbnail: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=250&fit=crop",
+      description: "Master the fundamentals of user interface and user experience design."
     },
     {
       id: 6,
-      title: 'Natural Language Processing Basics',
-      description: 'Understanding text processing, sentiment analysis, and language models.',
-      category: 'ai-courses',
-      rating: 4.5,
-      students: 743,
-      duration: '6 hours',
-      level: 'Intermediate',
-      thumbnail: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=400&h=200&fit=crop',
-      tags: ['NLP', 'Text Processing', 'NLTK'],
-      instructor: 'Dr. James Wilson',
-      price: '$39'
+      title: "Cloud Computing with AWS",
+      instructor: "David Park",
+      rating: 4.9,
+      students: 7654,
+      duration: "9h 30m",
+      level: "Intermediate",
+      price: "$59",
+      thumbnail: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=250&fit=crop",
+      description: "Learn cloud computing concepts and AWS services hands-on."
     }
   ];
 
-  const filteredContent = featuredContent.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const sortedContent = [...filteredContent].sort((a, b) => {
-    switch (sortBy) {
-      case 'rating':
-        return b.rating - a.rating;
-      case 'students':
-        return b.students - a.students;
-      case 'newest':
-        return b.id - a.id;
-      default: // popular
-        return b.students - a.students;
-    }
-  });
-
-  const handleEnroll = (courseId: number, title: string) => {
-    toast.success(`Successfully enrolled in "${title}"!`);
-    console.log('Enrolled in course:', courseId, title);
-  };
+  const categories = [
+    "All Courses",
+    "Programming",
+    "Data Science",
+    "Design",
+    "Business",
+    "Marketing",
+    "Personal Development"
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <Navigation />
-      <div className="pt-20 px-6 py-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="text-center">
-            <div className="flex items-center gap-4 mb-4 justify-center">
-              <BackButton />
-              <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Explore Learning Content
-              </h1>
-            </div>
-            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-              Discover AI-powered courses, study tools, and educational resources tailored to your learning journey
-            </p>
-          </div>
-
-          {/* Search and Filters */}
-          <Card className="shadow-elegant">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    placeholder="Search for courses, tools, or topics..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-white">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-white" />
                 </div>
-                <div className="flex gap-2 flex-wrap lg:flex-nowrap">
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-full lg:w-[200px]">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          <div className="flex items-center gap-2">
-                            <category.icon className="w-4 h-4" />
-                            {category.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-full lg:w-[150px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="popular">Most Popular</SelectItem>
-                      <SelectItem value="rating">Highest Rated</SelectItem>
-                      <SelectItem value="newest">Newest</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" className="gap-2">
-                    <Filter className="w-4 h-4" />
-                    Filter
+                <span className="text-xl font-bold">EduSynth</span>
+              </Link>
+              <span className="text-muted-foreground">/</span>
+              <span className="font-medium">Explore Courses</span>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <Link to="/dashboard">
+                <Button variant="ghost">Dashboard</Button>
+              </Link>
+              <Button variant="hero">Sign Up</Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">
+            Explore Our Course 
+            <span className="bg-gradient-primary bg-clip-text text-transparent"> Library</span>
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Discover thousands of courses created by experts and powered by AI to accelerate your learning journey
+          </p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex-1 relative">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <input 
+              type="text" 
+              placeholder="Search for courses, topics, or instructors..." 
+              className="w-full pl-10 pr-4 py-3 border border-border rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            Filters
+          </Button>
+        </div>
+
+        {/* Categories */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {categories.map((category, index) => (
+            <Button
+              key={category}
+              variant={index === 0 ? "default" : "outline"}
+              size="sm"
+              className="rounded-full"
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
+
+        {/* Courses Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {featuredCourses.map((course) => (
+            <Card key={course.id} className="overflow-hidden hover:shadow-card transition-shadow group">
+              <div className="relative overflow-hidden">
+                <img 
+                  src={course.thumbnail} 
+                  alt={course.title}
+                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute top-2 right-2">
+                  <Badge 
+                    variant={course.price === "Free" ? "default" : "secondary"}
+                    className="bg-white/90 text-primary"
+                  >
+                    {course.price}
+                  </Badge>
+                </div>
+              </div>
+              
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="outline" className="text-xs">
+                    {course.level}
+                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-sm font-medium">{course.rating}</span>
+                  </div>
+                </div>
+                <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
+                <p className="text-sm text-muted-foreground">by {course.instructor}</p>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {course.description}
+                </p>
+                
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {course.duration}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    {course.students.toLocaleString()} students
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="hero" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={handleEnrollNow}
+                  >
+                    Enroll Now
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleUseTool}
+                  >
+                    Use Tool
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-          {/* Category Tabs */}
-          <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-            <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-none lg:flex">
-              {categories.map((category) => (
-                <TabsTrigger key={category.id} value={category.id} className="gap-2">
-                  <category.icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{category.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value={selectedCategory} className="mt-6">
-              {/* Results Count */}
-              <div className="mb-6">
-                <p className="text-muted-foreground">
-                  {sortedContent.length} result{sortedContent.length !== 1 ? 's' : ''} found
-                  {searchQuery && ` for "${searchQuery}"`}
-                </p>
-              </div>
-
-              {/* Content Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedContent.map((item) => (
-                  <Card key={item.id} className="overflow-hidden hover:shadow-glow transition-all duration-300 group">
-                    <div className="relative">
-                      <img 
-                        src={item.thumbnail} 
-                        alt={item.title}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-2 right-2">
-                        <Badge variant={item.price === 'Free' ? 'secondary' : 'outline'} className="bg-white/90">
-                          {item.price}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">
-                          {item.title}
-                        </CardTitle>
-                      </div>
-                      <CardDescription className="text-sm line-clamp-2">
-                        {item.description}
-                      </CardDescription>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-warning text-warning" />
-                          {item.rating}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {item.students.toLocaleString()}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {item.duration}
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="pt-0">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">By {item.instructor}</span>
-                          <Badge variant="outline">{item.level}</Badge>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-1">
-                          {item.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        <Button 
-                          onClick={() => handleEnroll(item.id, item.title)}
-                          className="w-full mt-4"
-                          variant={item.price === 'Free' ? 'default' : 'outline'}
-                        >
-                          {item.category === 'study-tools' ? 'Use Tool' : 'Enroll Now'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {sortedContent.length === 0 && (
-                <div className="text-center py-12">
-                  <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No content found</h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search or filter criteria
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+        {/* Load More */}
+        <div className="text-center">
+          <Button variant="outline" size="lg" className="min-w-[200px]">
+            Load More Courses
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
       </div>
     </div>
