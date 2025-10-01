@@ -61,6 +61,7 @@ const Navigation = () => {
     { label: "How it Works", href: "#how-it-works" },
     { label: "Explore", href: "/explore" },
     { label: "Pricing", href: "#pricing" },
+    { label: "Dashboard", href: "/dashboard" },
   ];
 
   return (
@@ -76,21 +77,14 @@ const Navigation = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center justify-center gap-6 lg:gap-8">
-            {navItems.filter(item => item.label !== "Dashboard").map((item) => {
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map((item) => {
               if (item.href.startsWith('#')) {
                 return (
                   <a
                     key={item.label}
                     href={item.href}
-                    className="text-foreground hover:text-primary transition-smooth font-medium whitespace-nowrap px-2 py-1 rounded-md hover:bg-accent/50"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const element = document.querySelector(item.href);
-                      if (element) {
-                        element.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    }}
+                    className="text-foreground hover:text-primary transition-colors font-medium"
                   >
                     {item.label}
                   </a>
@@ -100,7 +94,7 @@ const Navigation = () => {
                   <Link
                     key={item.label}
                     to={item.href}
-                    className="text-foreground hover:text-primary transition-smooth font-medium whitespace-nowrap px-2 py-1 rounded-md hover:bg-accent/50"
+                    className="text-foreground hover:text-primary transition-colors font-medium"
                   >
                     {item.label}
                   </Link>
@@ -154,22 +148,15 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-border bg-white/95 backdrop-blur-sm">
-            <div className="py-4 space-y-2">
-              {navItems.filter(item => item.label !== "Dashboard").map((item) => {
+            <div className="py-4 space-y-4">
+              {navItems.map((item) => {
                 if (item.href.startsWith('#')) {
                   return (
                     <a
                       key={item.label}
                       href={item.href}
-                      className="block px-4 py-2 text-foreground hover:text-primary transition-smooth font-medium rounded-md hover:bg-accent/50"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setIsMenuOpen(false);
-                        const element = document.querySelector(item.href);
-                        if (element) {
-                          element.scrollIntoView({ behavior: 'smooth' });
-                        }
-                      }}
+                      className="block px-4 py-2 text-foreground hover:text-primary transition-colors font-medium"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       {item.label}
                     </a>
@@ -179,7 +166,7 @@ const Navigation = () => {
                     <Link
                       key={item.label}
                       to={item.href}
-                      className="block px-4 py-2 text-foreground hover:text-primary transition-smooth font-medium rounded-md hover:bg-accent/50"
+                      className="block px-4 py-2 text-foreground hover:text-primary transition-colors font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.label}
