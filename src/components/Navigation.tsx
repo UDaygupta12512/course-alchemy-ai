@@ -53,13 +53,13 @@ const Navigation = () => {
     const meta: any = user?.user_metadata;
     const name = meta?.full_name || meta?.name || (meta?.given_name && meta?.family_name ? `${meta.given_name} ${meta.family_name}` : undefined);
     if (name) return name as string;
-    return 'Uday Gupta'; // Default name for display
+    const local = user?.email?.split('@')[0] || 'User';
+    return local.replace(/[\._-]+/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   const navItems = [
     { label: "Features", href: "#features" },
     { label: "How it Works", href: "#how-it-works" },
-    { label: "Explore", href: "/explore" },
     { label: "Pricing", href: "#pricing" },
     { label: "Dashboard", href: "/dashboard" },
   ];
@@ -115,12 +115,10 @@ const Navigation = () => {
             </Button>
             {user ? (
               <>
-                <Link to="/profile">
-                  <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-md hover:bg-muted/80 transition-colors cursor-pointer">
-                    <User className="w-4 h-4" />
-                    <span className="text-sm font-medium">{getDisplayName()}</span>
-                  </div>
-                </Link>
+                <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-md">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">{getDisplayName()}</span>
+                </div>
                 <Button variant="ghost" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -184,12 +182,10 @@ const Navigation = () => {
                 </Button>
                 {user ? (
                   <>
-                    <Link to="/profile" onClick={() => setIsMenuOpen(false)}>
-                      <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md hover:bg-muted/80 transition-colors cursor-pointer">
-                        <User className="w-4 h-4" />
-                        <span className="text-sm font-medium">{getDisplayName()}</span>
-                      </div>
-                    </Link>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
+                      <User className="w-4 h-4" />
+                      <span className="text-sm font-medium">{getDisplayName()}</span>
+                    </div>
                     <Button variant="ghost" className="w-full" onClick={handleSignOut}>
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
