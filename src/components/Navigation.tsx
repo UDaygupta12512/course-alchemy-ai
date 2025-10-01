@@ -2,13 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Brain, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleSignIn = () => {
-    navigate("/dashboard");
+  const handleAuthClick = () => {
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/auth");
+    }
   };
 
   const handleGetStarted = () => {
@@ -67,7 +73,9 @@ const Navigation = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" onClick={handleSignIn}>Sign In</Button>
+            <Button variant="ghost" onClick={handleAuthClick}>
+              {user ? "Dashboard" : "Sign In"}
+            </Button>
             <Button variant="hero" onClick={handleGetStarted}>Get Started</Button>
           </div>
 
@@ -112,7 +120,9 @@ const Navigation = () => {
                 }
               })}
               <div className="px-4 pt-4 space-y-2">
-                <Button variant="ghost" className="w-full" onClick={handleSignIn}>Sign In</Button>
+                <Button variant="ghost" className="w-full" onClick={handleAuthClick}>
+                  {user ? "Dashboard" : "Sign In"}
+                </Button>
                 <Button variant="hero" className="w-full" onClick={handleGetStarted}>Get Started</Button>
               </div>
             </div>

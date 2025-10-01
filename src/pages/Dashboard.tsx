@@ -2,6 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   BookOpen, 
   Brain, 
@@ -14,11 +22,26 @@ import {
   Users,
   Play,
   FileText,
-  MessageSquare
+  MessageSquare,
+  LogOut
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
+  const { user, signOut } = useAuth();
+  
+  const getUserInitials = () => {
+    if (!user?.email) return "U";
+    return user.email.substring(0, 2).toUpperCase();
+  };
+
+  const getUserName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name.split(' ')[0];
+    }
+    return user?.email?.split('@')[0] || "User";
+  };
   const recentCourses = [
     {
       id: 1,
@@ -106,10 +129,27 @@ const Dashboard = () => {
                   className="pl-10 pr-4 py-2 border border-border rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
-              <Avatar>
-                <AvatarImage src="/placeholder-avatar.jpg" />
-                <AvatarFallback>JS</AvatarFallback>
-              </Avatar>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="cursor-pointer">
+                    <AvatarImage src={user?.user_metadata?.avatar_url} />
+                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{getUserName()}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -118,7 +158,7 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, John! 👋</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome back, {getUserName()}! 👋</h1>
           <p className="text-muted-foreground">Here's what's happening with your learning journey today.</p>
         </div>
 

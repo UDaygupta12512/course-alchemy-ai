@@ -1,21 +1,105 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting map (userId -> { count, resetTime })
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 10; // requests per window
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+
+const validateInput = (data: any) => {
+  if (!data.sourceType || !data.content) {
+    throw new Error("Missing required fields: sourceType and content");
+  }
+  
+  if (!["youtube", "pdf", "text"].includes(data.sourceType)) {
+    throw new Error("Invalid sourceType. Must be youtube, pdf, or text");
+  }
+  
+  if (typeof data.content !== "string" || data.content.trim().length === 0) {
+    throw new Error("Content must be a non-empty string");
+  }
+  
+  if (data.content.length > 10000) {
+    throw new Error("Content exceeds maximum length of 10000 characters");
+  }
+  
+  return {
+    sourceType: data.sourceType,
+    content: data.content.trim(),
+  };
+};
+
+const checkRateLimit = (userId: string): boolean => {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (!userLimit || now > userLimit.resetTime) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  
+  if (userLimit.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  userLimit.count++;
+  return true;
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { sourceType, content, title } = await req.json();
+    // Verify JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Authentication failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check rate limit
+    if (!checkRateLimit(user.id)) {
+      console.warn(`Rate limit exceeded for user ${user.id}`);
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Processing request for user ${user.id}`);
+
+    // Validate input
+    const requestData = await req.json();
+    const { sourceType, content } = validateInput(requestData);
+    const { title } = requestData;
     
     console.log('Received request:', { sourceType, content: content?.substring(0, 100), title });
 
@@ -201,15 +285,22 @@ Generate at least 5 comprehensive note sections, 10 quiz questions, and 15 flash
     });
 
   } catch (error) {
-    console.error('Error in generate-course-content function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      notes: [],
-      quizzes: [],
-      flashcards: []
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Error in generate-course-content function:', error instanceof Error ? error.message : 'Unknown error');
+    
+    const statusCode = error instanceof Error && error.message.includes('Rate limit') ? 429 :
+                       error instanceof Error && (error.message.includes('Invalid') || error.message.includes('Missing')) ? 400 : 500;
+    
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to generate course content',
+        notes: [],
+        quizzes: [],
+        flashcards: []
+      }),
+      { 
+        status: statusCode,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
 });

@@ -7,6 +7,8 @@ import { Upload, Youtube, FileText, ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import CoursePreview from "./CoursePreview";
+import { youtubeUrlSchema, pdfFileSchema } from "@/lib/validation";
+import { z } from "zod";
 
 const UploadSection = () => {
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -24,88 +26,106 @@ const UploadSection = () => {
   };
 
   const handleYouTubeSubmit = async () => {
-    if (!youtubeUrl.trim()) {
+    try {
+      const validatedUrl = youtubeUrlSchema.parse(youtubeUrl);
+      
+      setIsProcessing(true);
       toast({
-        title: "URL Required",
-        description: "Please enter a YouTube URL to continue.",
-        variant: "destructive",
+        title: "Processing Started!",
+        description: "Analyzing your YouTube video and generating course content...",
       });
-      return;
-    }
 
-    setIsProcessing(true);
-    toast({
-      title: "Processing Started!",
-      description: "Analyzing your YouTube video and generating course content...",
-    });
-
-    setSourceType("youtube");
-    setInputContent(youtubeUrl);
+      setSourceType("youtube");
+      setInputContent(validatedUrl);
     
-    // Generate dynamic title based on URL
-    const generateTitleFromUrl = (url: string) => {
-      const urlObj = new URL(url);
-      if (urlObj.hostname.includes('youtube')) {
-        const videoId = urlObj.searchParams.get('v');
-        return `Course from YouTube Video (${videoId?.substring(0, 8) || 'Video'})`;
-      }
-      return "Course from YouTube Video";
-    };
-    
-    setCourseTitle(generateTitleFromUrl(youtubeUrl));
+      // Generate dynamic title based on URL
+      const generateTitleFromUrl = (url: string) => {
+        const urlObj = new URL(url);
+        if (urlObj.hostname.includes('youtube')) {
+          const videoId = urlObj.searchParams.get('v');
+          return `Course from YouTube Video (${videoId?.substring(0, 8) || 'Video'})`;
+        }
+        return "Course from YouTube Video";
+      };
+      
+      setCourseTitle(generateTitleFromUrl(validatedUrl));
 
-    // Simulate processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setShowCoursePreview(true);
-      toast({
-        title: "Course Generated Successfully!",
-        description: "Your micro-course is ready with notes, quizzes, and AI tutor.",
-      });
-      // Scroll to preview
+      // Simulate processing
       setTimeout(() => {
-        document.getElementById('course-preview')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }, 3000);
+        setIsProcessing(false);
+        setShowCoursePreview(true);
+        toast({
+          title: "Course Generated Successfully!",
+          description: "Your micro-course is ready with notes, quizzes, and AI tutor.",
+        });
+        // Scroll to preview
+        setTimeout(() => {
+          document.getElementById('course-preview')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }, 3000);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          variant: "destructive",
+          title: "Invalid URL",
+          description: error.errors[0].message,
+        });
+      }
+    }
   };
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    setIsProcessing(true);
-    toast({
-      title: "Files Uploaded!",
-      description: `Processing ${files.length} PDF file(s) to generate your course...`,
-    });
-
-    setSourceType("pdf");
-    setInputContent(Array.from(files).map(f => f.name).join(", "));
-    
-    // Generate dynamic title based on file names
-    const generateTitleFromFiles = (fileList: FileList) => {
-      const fileNames = Array.from(fileList).map(f => f.name.replace('.pdf', ''));
-      if (fileList.length === 1) {
-        return `Course: ${fileNames[0]}`;
-      } else {
-        return `Multi-PDF Course (${fileList.length} documents)`;
+    try {
+      // Validate each file
+      for (let i = 0; i < files.length; i++) {
+        pdfFileSchema.parse(files[i]);
       }
-    };
-    
-    setCourseTitle(generateTitleFromFiles(files));
 
-    // Simulate processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setShowCoursePreview(true);
+      setIsProcessing(true);
       toast({
-        title: "Course Generated Successfully!",
-        description: "Your PDF content has been transformed into an interactive course.",
+        title: "Files Uploaded!",
+        description: `Processing ${files.length} PDF file(s) to generate your course...`,
       });
-      // Scroll to preview
+
+      setSourceType("pdf");
+      setInputContent(Array.from(files).map(f => f.name).join(", "));
+    
+      // Generate dynamic title based on file names
+      const generateTitleFromFiles = (fileList: FileList) => {
+        const fileNames = Array.from(fileList).map(f => f.name.replace('.pdf', ''));
+        if (fileList.length === 1) {
+          return `Course: ${fileNames[0]}`;
+        } else {
+          return `Multi-PDF Course (${fileList.length} documents)`;
+        }
+      };
+      
+      setCourseTitle(generateTitleFromFiles(files));
+
+      // Simulate processing
       setTimeout(() => {
-        document.getElementById('course-preview')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }, 3000);
+        setIsProcessing(false);
+        setShowCoursePreview(true);
+        toast({
+          title: "Course Generated Successfully!",
+          description: "Your PDF content has been transformed into an interactive course.",
+        });
+        // Scroll to preview
+        setTimeout(() => {
+          document.getElementById('course-preview')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }, 3000);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          variant: "destructive",
+          title: "Invalid File",
+          description: error.errors[0].message,
+        });
+      }
+    }
   };
 
   return (
