@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { User, Mail, Calendar, Edit3, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
-import BackButton from '@/components/BackButton';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -126,12 +125,9 @@ const Profile = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Profile Header */}
           <div className="text-center">
-            <div className="flex items-center gap-4 mb-4 justify-center">
-              <BackButton />
-              <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Profile
-              </h1>
-            </div>
+            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Profile
+            </h1>
             <p className="text-muted-foreground mt-2">
               Manage your account settings and preferences
             </p>
