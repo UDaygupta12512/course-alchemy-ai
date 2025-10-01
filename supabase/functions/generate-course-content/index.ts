@@ -203,7 +203,7 @@ Generate at least 5 comprehensive note sections, 10 quiz questions, and 15 flash
   } catch (error) {
     console.error('Error in generate-course-content function:', error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: error.message,
       notes: [],
       quizzes: [],
       flashcards: []
