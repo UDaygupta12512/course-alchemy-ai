@@ -66,8 +66,9 @@ const UploadSection = () => {
         throw new Error(data.error || 'Failed to generate content');
       }
     } catch (error) {
-      console.error('Course generation error:', error);
-      toast({
+        console.error('Course generation error:', error);
+        console.log('Error details:', { type, content, title, error });
+        toast({
         title: "Generation Failed",
         description: "Failed to generate AI content. Using sample content instead.",
         variant: "destructive",
