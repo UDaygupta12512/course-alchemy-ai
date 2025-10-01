@@ -6,8 +6,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User, Lightbulb, BookOpen, HelpCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const AIChatAssistant = () => {
+const AIChatAssistant = ({ courseContext }: { courseContext?: string }) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -36,29 +39,49 @@ const AIChatAssistant = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage;
     setInputMessage("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponses = [
-        "That's a great question! Let me break this down for you. The concept you're asking about involves several key components...",
-        "Based on your current course material, I can see you're working on machine learning fundamentals. Here's what you need to know...",
-        "I'd be happy to help you understand this better. Let me create a simple explanation with examples...",
-        "This is an important topic! Here are the key points you should focus on: 1) First principle... 2) Second concept... 3) Practical application...",
-        "Let me help you with that. I can see from your learning history that you might benefit from reviewing the basics first..."
-      ];
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-tutor-chat', {
+        body: {
+          message: currentMessage,
+          courseContext: courseContext
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
 
       const aiMessage = {
         id: messages.length + 2,
         sender: "ai" as const,
-        content: aiResponses[Math.floor(Math.random() * aiResponses.length)],
+        content: data.response,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('AI Tutor error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI response. Please try again.",
+        variant: "destructive",
+      });
+      
+      // Add fallback message
+      const aiMessage = {
+        id: messages.length + 2,
+        sender: "ai" as const,
+        content: "I'm sorry, I'm having trouble responding right now. Please try asking your question again.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleQuickAction = (action: string) => {
