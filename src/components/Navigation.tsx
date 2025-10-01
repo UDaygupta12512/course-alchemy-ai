@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X, Maximize, Minimize } from "lucide-react";
+import { Brain, Menu, X, Maximize, Minimize, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const toggleFullscreen = () => {
@@ -21,14 +24,28 @@ const Navigation = () => {
   };
 
   const handleSignIn = () => {
-    window.location.href = '/auth';
+    navigate('/auth');
+  };
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error('Error signing out');
+    } else {
+      toast.success('Signed out successfully');
+      navigate('/');
+    }
   };
 
   const handleGetStarted = () => {
-    // Scroll to upload section
-    const uploadSection = document.getElementById('upload-section');
-    if (uploadSection) {
-      uploadSection.scrollIntoView({ behavior: 'smooth' });
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      // Scroll to upload section
+      const uploadSection = document.getElementById('upload-section');
+      if (uploadSection) {
+        uploadSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -88,8 +105,23 @@ const Navigation = () => {
             >
               {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
             </Button>
-            <Button variant="ghost" onClick={handleSignIn}>Sign In</Button>
-            <Button variant="hero" onClick={handleGetStarted}>Get Started</Button>
+            {user ? (
+              <>
+                <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-md">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</span>
+                </div>
+                <Button variant="ghost" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={handleSignIn}>Sign In</Button>
+                <Button variant="hero" onClick={handleGetStarted}>Get Started</Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -140,8 +172,23 @@ const Navigation = () => {
                 >
                   {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                 </Button>
-                <Button variant="ghost" className="w-full" onClick={handleSignIn}>Sign In</Button>
-                <Button variant="hero" className="w-full" onClick={handleGetStarted}>Get Started</Button>
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
+                      <User className="w-4 h-4" />
+                      <span className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</span>
+                    </div>
+                    <Button variant="ghost" className="w-full" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" className="w-full" onClick={handleSignIn}>Sign In</Button>
+                    <Button variant="hero" className="w-full" onClick={handleGetStarted}>Get Started</Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
