@@ -49,6 +49,14 @@ const Navigation = () => {
     }
   };
 
+  const getDisplayName = () => {
+    const meta: any = user?.user_metadata;
+    const name = meta?.full_name || meta?.name || (meta?.given_name && meta?.family_name ? `${meta.given_name} ${meta.family_name}` : undefined);
+    if (name) return name as string;
+    const local = user?.email?.split('@')[0] || 'User';
+    return local.replace(/[\._-]+/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
   const navItems = [
     { label: "Features", href: "#features" },
     { label: "How it Works", href: "#how-it-works" },
@@ -109,7 +117,7 @@ const Navigation = () => {
               <>
                 <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-md">
                   <User className="w-4 h-4" />
-                  <span className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</span>
+                  <span className="text-sm font-medium">{getDisplayName()}</span>
                 </div>
                 <Button variant="ghost" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4 mr-2" />
@@ -176,7 +184,7 @@ const Navigation = () => {
                   <>
                     <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
                       <User className="w-4 h-4" />
-                      <span className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</span>
+                      <span className="text-sm font-medium">{getDisplayName()}</span>
                     </div>
                     <Button variant="ghost" className="w-full" onClick={handleSignOut}>
                       <LogOut className="w-4 h-4 mr-2" />
