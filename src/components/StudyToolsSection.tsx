@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import DemoModal from "./DemoModal";
 import { 
   FileText, 
   Target, 
@@ -21,8 +19,6 @@ import {
 const StudyToolsSection = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [selectedTool, setSelectedTool] = useState<string>("");
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
   const tools = [
     {
       icon: <FileText className="w-8 h-8" />,
@@ -76,8 +72,10 @@ const StudyToolsSection = () => {
   ];
 
   const handleExploreTool = (toolTitle: string) => {
-    setSelectedTool(toolTitle);
-    setIsDemoOpen(true);
+    toast({
+      title: "Tool Demo",
+      description: `${toolTitle} demo is coming soon! Sign up to get notified when it's available.`,
+    });
   };
 
   const handleGetStarted = () => {
@@ -196,12 +194,6 @@ const StudyToolsSection = () => {
             </CardContent>
           </Card>
         </div>
-
-        <DemoModal 
-          isOpen={isDemoOpen}
-          onClose={() => setIsDemoOpen(false)}
-          toolTitle={selectedTool}
-        />
       </div>
     </section>
   );
