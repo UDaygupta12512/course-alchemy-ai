@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Star, Clock, Users, BookOpen, Video, FileText, Brain, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import BackButton from '@/components/BackButton';
 import { toast } from 'sonner';
 
 const Explore = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
@@ -131,9 +133,8 @@ const Explore = () => {
     }
   });
 
-  const handleEnroll = (courseId: number, title: string) => {
-    toast.success(`Successfully enrolled in "${title}"!`);
-    console.log('Enrolled in course:', courseId, title);
+  const handleCourseClick = (courseId: number) => {
+    navigate(`/course/${courseId}`);
   };
 
   return (
@@ -225,7 +226,11 @@ const Explore = () => {
               {/* Content Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sortedContent.map((item) => (
-                  <Card key={item.id} className="overflow-hidden hover:shadow-glow transition-all duration-300 group">
+                  <Card 
+                    key={item.id} 
+                    className="overflow-hidden hover:shadow-glow transition-all duration-300 group cursor-pointer"
+                    onClick={() => handleCourseClick(item.id)}
+                  >
                     <div className="relative">
                       <img 
                         src={item.thumbnail} 
@@ -280,11 +285,14 @@ const Explore = () => {
                         </div>
 
                         <Button 
-                          onClick={() => handleEnroll(item.id, item.title)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCourseClick(item.id);
+                          }}
                           className="w-full mt-4"
                           variant={item.price === 'Free' ? 'default' : 'outline'}
                         >
-                          {item.category === 'study-tools' ? 'Use Tool' : 'Enroll Now'}
+                          {item.category === 'study-tools' ? 'Use Tool' : 'View Course'}
                         </Button>
                       </div>
                     </CardContent>
