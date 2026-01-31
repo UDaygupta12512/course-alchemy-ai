@@ -1,63 +1,125 @@
-# Welcome to my project
+🎓 Course Alchemy AI
 
-## Project info
+Course Alchemy AI is an AI-powered platform that helps users discover, generate, and refine course content intelligently. It blends modern frontend design with AI capabilities to create a seamless and engaging learning experience.
 
-## How can I edit this code?
+🌐 Live Demo: https://course-alchemy-ai.vercel.app/
 
-There are several ways of editing your application.
+📦 Repository: https://github.com/UDaygupta12512/course-alchemy-ai
+
+🚀 Overview
+
+Course Alchemy AI focuses on transforming raw ideas into structured learning paths using AI. The platform is built with performance, scalability, and user experience in mind, making it suitable for students, educators, and self-learners.
+
+✨ Key Features
+
+🤖 AI-Powered Course Generation – Generate structured course content from prompts
+
+📚 Smart Learning Flow – Organized modules and topics for clarity
+
+⚡ Fast & Responsive UI – Optimized for desktop and mobile devices
+
+🎨 Modern Design System – Clean UI with reusable components
+
+🌐 Deployed on Vercel – Reliable and fast hosting
+
+🛠 Tech Stack
+
+Frontend
+
+React
+
+TypeScript
+
+Tailwind CSS
+
+shadcn/ui
+
+Tooling & Platform
+
+Vite
+
+Vercel
+
+Git & GitHub
+
+📂 Project Structure
+course-alchemy-ai/
+├── public/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   ├── utils/
+│   ├── styles/
+│   └── main.tsx
+├── package.json
+├── tailwind.config.ts
+├── vite.config.ts
+└── README.md
+
+⚙️ Installation & Setup
+
+Follow these steps to run the project locally:
+
+Clone the repository
+
+git clone https://github.com/UDaygupta12512/course-alchemy-ai.git
+cd course-alchemy-ai
 
 
-**Use your preferred IDE**
+Install dependencies
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+npm install
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Follow these steps:
+Start the development server
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
 
 
+Open your browser and visit:
+
+http://localhost:5173
+
+🧠 Use Cases
+
+Students looking for structured learning paths
+
+Educators creating AI-assisted course outlines
+
+Developers exploring AI + frontend integration
+
+EdTech project inspiration
+
+🧪 Future Enhancements
+
+🔐 Authentication & user profiles
+
+💾 Course saving & progress tracking
+
+🧠 Advanced AI customization
+
+📊 Analytics dashboard
+
+🌍 Multi-language support
+
+🤝 Contributing
+
+Contributions are welcome and appreciated!
+
+Fork the repository
+
+Create a new branch (feature/your-feature-name)
+
+Commit your changes
+
+Push the branch
+
+Open a Pull Request
+
+📄 License
+
+This project is licensed under the MIT License.
 
 
-Yes, you can!
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
